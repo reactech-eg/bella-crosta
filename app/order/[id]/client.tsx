@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Header } from "@/components/header";
-import { getOrderById } from "@/lib/db";
-import type { Order } from "@/lib/types";
+import { useAppStore } from "@/store/app-store";
 import {
   CheckCircle,
   Clock,
@@ -33,9 +32,7 @@ export default function OrderPage() {
   const params = useParams();
   const orderId = params.id as string;
 
-  // const [user, setUser] = useState<any>(null)
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { currentOrder: order, loadingOrder: loading, fetchOrderById } = useAppStore();
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -45,12 +42,12 @@ export default function OrderPage() {
 
         if (!currentUser) {
           setError("Please sign in to view your order.");
-          setLoading(false);
           return;
         }
-        // setUser(currentUser)
 
-        const orderData = await getOrderById(orderId);
+        await fetchOrderById(orderId);
+        const orderData = useAppStore.getState().currentOrder;
+        
         if (!orderData) {
           setError("Order not found.");
         } else if (
@@ -58,19 +55,15 @@ export default function OrderPage() {
           orderData.customer_id !== currentUser.id
         ) {
           setError("You do not have permission to view this order.");
-        } else {
-          setOrder(orderData);
         }
       } catch (err) {
         console.error("fetchData error:", err);
         setError("Failed to load order.");
-      } finally {
-        setLoading(false);
       }
     }
 
     fetchData();
-  }, [orderId]);
+  }, [orderId, fetchOrderById]);
 
   if (loading) {
     return (

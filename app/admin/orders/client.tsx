@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AdminSidebar } from "@/components/admin-sidebar";
-import { getAllOrders } from "@/lib/db";
-import type { Order } from "@/lib/types";
+import { useAdminStore } from "@/store/admin-store";
 import { Menu } from "lucide-react";
 import Link from "next/link";
 
@@ -17,17 +16,13 @@ const FILTERS = [
 ];
 
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { orders, loadingOrders: loading, fetchOrders } = useAdminStore();
   const [mobile, setMobile] = useState(false);
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
-    getAllOrders().then((d) => {
-      setOrders(d);
-      setLoading(false);
-    });
-  }, []);
+    fetchOrders();
+  }, [fetchOrders]);
 
   const shown =
     filter === "all" ? orders : orders.filter((o) => o.status === filter);

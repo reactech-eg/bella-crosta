@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useParams } from "next/navigation";
 import { AdminSidebar } from "@/components/admin-sidebar";
-import { getOrderById } from "@/lib/db";
+import { useAdminStore } from "@/store/admin-store";
 import { updateOrderStatus, confirmPayment } from "@/lib/actions";
 import type { Order } from "@/lib/types";
 import { Menu, ArrowLeft, CheckCircle, ExternalLink } from "lucide-react";
@@ -19,36 +19,36 @@ const STATUSES = [
 
 export default function AdminOrderDetailPage() {
   const { id: orderId } = useParams<{ id: string }>();
-  const [order, setOrder] = useState<Order | null>(null);
+  const { currentAdminOrder: order, fetchOrderById } = useAdminStore();
   const [loading, setLoading] = useState(true);
   const [mobile, setMobile] = useState(false);
   const [selStatus, setSelStatus] = useState("");
   const [pending, start] = useTransition();
 
-  const load = useCallback(
-    () =>
-      getOrderById(orderId).then((d) => {
-        setOrder(d);
-        setSelStatus(d?.status ?? "");
-      }),
-    [orderId],
-  );
-
   useEffect(() => {
-    load().finally(() => setLoading(false));
-  }, [load, orderId]);
+    let mounted = true;
+    const init = async () => {
+      await fetchOrderById(orderId);
+      if (!mounted) return;
+      const fetchedOrder = useAdminStore.getState().currentAdminOrder;
+      setSelStatus(fetchedOrder?.status ?? "");
+      setLoading(false);
+    };
+    init();
+    return () => { mounted = false; };
+  }, [fetchOrderById, orderId]);
 
   const handleStatus = () => {
     if (!selStatus || selStatus === order?.status) return;
     start(async () => {
       await updateOrderStatus(orderId, selStatus as Order["status"]);
-      load();
+      await fetchOrderById(orderId);
     });
   };
   const handleConfirm = () =>
     start(async () => {
       await confirmPayment(orderId);
-      load();
+      await fetchOrderById(orderId);
     });
 
   const statusColor = (s: string) =>

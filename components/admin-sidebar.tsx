@@ -12,7 +12,7 @@ import {
   LogOut,
   X,
 } from "lucide-react";
-import { signOut } from "@/lib/auth";
+
 
 interface AdminSidebarProps {
   mobile?: boolean;
@@ -22,10 +22,10 @@ interface AdminSidebarProps {
 export function AdminSidebar({ mobile = false, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const [signingOut, setSigningOut] = useState(false);
-  const handleLogout = async () => {
+  const handleLogout = () => {
     if (signingOut) return;
     setSigningOut(true);
-    await signOut();
+    window.location.href = "/auth/logout";
   };
 
   const nav = [

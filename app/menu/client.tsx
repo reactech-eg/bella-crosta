@@ -3,21 +3,16 @@
 import { useState, useEffect, useMemo } from "react";
 import { Header } from "@/components/header";
 import { ProductCard } from "@/components/product-card";
-import { getProducts } from "@/lib/db";
-import type { Product } from "@/lib/types";
+import { useAppStore } from "@/store/app-store";
 
 export default function MenuPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { products, loadingProducts: loading, fetchProducts } = useAppStore();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    getProducts().then((data) => {
-      setProducts(data);
-      setLoading(false);
-    });
-  }, []);
+    fetchProducts();
+  }, [fetchProducts]);
 
   // Build unique categories from product data — no separate categories table needed
   const categories = useMemo(() => {

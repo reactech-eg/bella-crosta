@@ -1,12 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import { SESSION_COOKIE, LEGACY_SESSION_COOKIE } from "@/lib/auth-constants";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 const supabaseRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const SESSION_COOKIE = "sb-access-token";
-const LEGACY_SESSION_COOKIE = "supabase-auth-token";
+
 
 export const createClient = async (request: NextRequest) => {
   // Create an unmodified response

@@ -1,17 +1,15 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { AdminSidebar } from "@/components/admin-sidebar";
-import { getAllOrders } from "@/lib/db";
+import { useAdminStore } from "@/store/admin-store";
 import { confirmPayment } from "@/lib/actions";
-import type { Order } from "@/lib/types";
 import { Menu, CheckCircle, Clock, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 
 export default function AdminPaymentsPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { orders, loadingOrders: loading, fetchOrders } = useAdminStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [filter, setFilter] = useState<"uploaded" | "confirmed" | "all">(
     "uploaded",
@@ -19,12 +17,9 @@ export default function AdminPaymentsPage() {
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
-  const loadOrders = () => {
-    getAllOrders().then((data) => {
-      setOrders(data);
-      setLoading(false);
-    });
-  };
+  const loadOrders = useCallback(() => {
+    fetchOrders();
+  }, [fetchOrders]);
   useEffect(() => {
     async function checkAdmin() {
       const user = await getCurrentUser();
@@ -35,7 +30,7 @@ export default function AdminPaymentsPage() {
       loadOrders();
     }
     checkAdmin();
-  }, []);
+  }, [loadOrders]);
 
   const handleConfirm = (orderId: string) => {
     setConfirmingId(orderId);

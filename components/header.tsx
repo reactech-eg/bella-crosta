@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useCartStore } from '@/store/cart-store'
 import { ShoppingCart, Menu, X, User, ChevronDown } from 'lucide-react'
-import { getCurrentUser, signOut } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth'
 
 interface SessionUser {
   id: string
@@ -105,12 +105,12 @@ export function Header() {
                     >
                       Profile
                     </Link>
-                    <button
-                      onClick={() => signOut()}
-                      className="rounded-2xl px-3 py-2 text-sm text-foreground transition hover:bg-muted text-left"
+                    <a
+                      href="/auth/logout"
+                      className="rounded-2xl px-3 py-2 text-sm text-foreground transition hover:bg-muted text-left block"
                     >
                       Logout
-                    </button>
+                    </a>
                   </div>
                 </div>
               )}
@@ -164,9 +164,9 @@ export function Header() {
               </Link>
             )}
             {user ? (
-              <button onClick={() => signOut()} className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted text-left">
+              <a href="/auth/logout" className="block rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted text-left">
                 Logout
-              </button>
+              </a>
             ) : (
               <>
                 <Link href="/auth/login" className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted">

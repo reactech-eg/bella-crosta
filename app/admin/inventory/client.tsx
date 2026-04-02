@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { AdminSidebar } from "@/components/admin-sidebar";
-import { getAllProducts } from "@/lib/db";
+import { useAdminStore } from "@/store/admin-store";
 import { updateProduct } from "@/lib/actions";
 import type { Product } from "@/lib/types";
 import { Menu, AlertCircle, Save, X } from "lucide-react";
@@ -10,22 +10,20 @@ import { Menu, AlertCircle, Save, X } from "lucide-react";
 const LOW = 10;
 
 export default function AdminInventoryPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { products, loadingProducts: loading, fetchProducts } = useAdminStore();
   const [mobile, setMobile] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editQty, setEditQty] = useState("");
   const [qtyError, setQtyError] = useState("");
   const [pending, start] = useTransition();
 
-  const load = () =>
-    getAllProducts().then((d) => {
-      setProducts(d);
-      setLoading(false);
-    });
+  const load = () => {
+    fetchProducts();
+  };
+
   useEffect(() => {
-    load();
-  }, []);
+    fetchProducts();
+  }, [fetchProducts]);
 
   const startEdit = (p: Product) => {
     setEditId(p.id);
