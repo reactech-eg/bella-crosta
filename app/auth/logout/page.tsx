@@ -16,6 +16,8 @@
 
 import { signOut } from '@/lib/auth'
 
+export const dynamic = 'force-dynamic'
+
 export default async function LogoutPage() {
   // signOut() deletes the cookie then calls redirect('/').
   // redirect() throws NEXT_REDIRECT so this component never renders JSX.

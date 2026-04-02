@@ -1,6 +1,7 @@
 import { requireAdmin } from '@/lib/auth'
 import { getAllOrders } from '@/lib/db'
 import AdminDashboardClient from './client'
+export const dynamic = 'force-dynamic'
 
 // Server component: auth guard runs on server — no redirect flash
 export default async function AdminDashboard() {

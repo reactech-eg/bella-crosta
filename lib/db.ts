@@ -3,11 +3,14 @@
 import { createClient } from "@/utils/supabase/server";
 import { Customer, Order, OrderItem, Product } from "./types";
 
-const supabase = await createClient();
+async function getDB() {
+  return await createClient();
+}
 
 // ─── Products ─────────────────────────────────────────────────────────────────
 export async function getProducts(): Promise<Product[]> {
-  const { data, error } = await supabase
+  const db = await getDB();
+  const { data, error } = await db
     .from("products")
     .select("*")
     .eq("is_available", true)
@@ -23,7 +26,8 @@ export async function getProducts(): Promise<Product[]> {
 export async function getProductsByCategory(
   category: string,
 ): Promise<Product[]> {
-  const { data, error } = await supabase
+  const db = await getDB();
+  const { data, error } = await db
     .from("products")
     .select("*")
     .eq("category", category)
@@ -38,7 +42,8 @@ export async function getProductsByCategory(
 }
 
 export async function getFeaturedProducts(): Promise<Product[]> {
-  const { data, error } = await supabase
+  const db = await getDB();
+  const { data, error } = await db
     .from("products")
     .select("*")
     .eq("is_featured", true)
@@ -54,7 +59,8 @@ export async function getFeaturedProducts(): Promise<Product[]> {
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
-  const { data, error } = await supabase
+  const db = await getDB();
+  const { data, error } = await db
     .from("products")
     .select("*")
     .eq("id", id)
@@ -68,7 +74,8 @@ export async function getProductById(id: string): Promise<Product | null> {
 }
 
 export async function getAllProducts(): Promise<Product[]> {
-  const { data, error } = await supabase
+  const db = await getDB();
+  const { data, error } = await db
     .from("products")
     .select("*")
     .order("created_at", { ascending: false });
@@ -98,7 +105,8 @@ function mapOrder(data: Order): Order | null {
 
 // ─── Orders ───────────────────────────────────────────────────────────────────
 export async function getOrderById(orderId: string): Promise<Order | null> {
-  const { data, error } = await supabase
+  const db = await getDB();
+  const { data, error } = await db
     .from("orders")
     .select(
       `
@@ -119,7 +127,8 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
 }
 
 export async function getCustomerOrders(customerId: string): Promise<Order[]> {
-  const { data, error } = await supabase
+  const db = await getDB();
+  const { data, error } = await db
     .from("orders")
     .select(
       `
@@ -139,7 +148,8 @@ export async function getCustomerOrders(customerId: string): Promise<Order[]> {
 }
 
 export async function getAllOrders(): Promise<Order[]> {
-  const { data, error } = await supabase
+  const db = await getDB();
+  const { data, error } = await db
     .from("orders")
     .select(
       `
@@ -160,7 +170,8 @@ export async function getAllOrders(): Promise<Order[]> {
 
 // ─── Customers ────────────────────────────────────────────────────────────────
 export async function getAllCustomers(): Promise<Customer[]> {
-  const { data, error } = await supabase
+  const db = await getDB();
+  const { data, error } = await db
     .from("customers")
     .select("*")
     .order("created_at", { ascending: false });
@@ -173,7 +184,8 @@ export async function getAllCustomers(): Promise<Customer[]> {
 }
 
 export async function getCustomerById(id: string): Promise<Customer | null> {
-  const { data, error } = await supabase
+  const db = await getDB();
+  const { data, error } = await db
     .from("customers")
     .select("*")
     .eq("id", id)
@@ -187,7 +199,8 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
 }
 
 export async function getLowStockProducts(threshold = 10): Promise<Product[]> {
-  const { data, error } = await supabase
+  const db = await getDB();
+  const { data, error } = await db
     .from("products")
     .select("*")
     .lte("stock_qty", threshold)

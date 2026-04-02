@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { signUp } from '@/lib/auth'
@@ -56,7 +56,7 @@ function PasswordStrength({ password }: { password: string }) {
   )
 }
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const returnUrl = searchParams.get('returnUrl') || null
@@ -284,5 +284,25 @@ export default function SignupPage() {
         By creating an account you agree to receive order updates and promotions from Bella Crosta.
       </p>
     </div>
+  )
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <div className="w-full max-w-md bg-card border border-border rounded-2xl p-8 shadow-2xl animate-pulse">
+        <div className="h-8 w-48 bg-muted rounded mb-4" />
+        <div className="h-4 w-64 bg-muted rounded mb-8" />
+        <div className="space-y-4">
+          <div className="h-10 bg-muted rounded-xl" />
+          <div className="h-10 bg-muted rounded-xl" />
+          <div className="h-10 bg-muted rounded-xl" />
+          <div className="h-10 bg-muted rounded-xl" />
+          <div className="h-12 bg-primary/20 rounded-xl mt-2" />
+        </div>
+      </div>
+    }>
+      <SignupForm />
+    </Suspense>
   )
 }
