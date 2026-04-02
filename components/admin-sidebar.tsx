@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
   LayoutDashboard,
@@ -12,6 +12,7 @@ import {
   LogOut,
   X,
 } from "lucide-react";
+import { signOut } from "@/lib/auth";
 
 interface AdminSidebarProps {
   mobile?: boolean;
@@ -20,24 +21,11 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ mobile = false, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
-
   const handleLogout = async () => {
     if (signingOut) return;
     setSigningOut(true);
-    try {
-      // POST to Route Handler — valid Server Action context for cookie deletion.
-      // The handler invalidates the Supabase JWT and deletes bc_session cookie.
-      await fetch("/api/auth/logout", { method: "POST" });
-    } catch (e) {
-      // Network error — still navigate away; middleware will block re-entry.
-      console.error("[AdminSidebar] logout fetch error (non-fatal):", e);
-    } finally {
-      // Client-side navigation after cookie is cleared server-side.
-      router.push("/");
-      router.refresh(); // Re-fetch server components so they see the cleared cookie.
-    }
+    await signOut();
   };
 
   const nav = [

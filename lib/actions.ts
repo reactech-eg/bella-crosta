@@ -1,20 +1,10 @@
 "use server";
 
 import { createClient as createServerClient } from "@/utils/supabase/server";
-import { createClient } from "@supabase/supabase-js";
-import { getSessionToken } from "./auth";
+
 // ─── Authed Supabase client (passes JWT so RLS applies per-user) ─────────────
 async function authedClient() {
-  const token = await getSessionToken();
-  if (!token) throw new Error("Not authenticated");
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      global: { headers: { Authorization: `Bearer ${token}` } },
-      auth: { persistSession: false, autoRefreshToken: false },
-    },
-  );
+  return await createServerClient();
 }
 
 export type ActionResult<T = undefined> =

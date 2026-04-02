@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useCart } from "@/lib/cart-context";
+import { useCartStore } from "@/store/cart-store";
 import { ShoppingCart, Plus, Minus, Check } from "lucide-react";
 import Image from "next/image";
 
@@ -26,7 +26,7 @@ export function ProductCard({
   stock_qty,
   category,
 }: ProductCardProps) {
-  const { addItem } = useCart();
+  const addItem = useCartStore(state => state.addItem)
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
 

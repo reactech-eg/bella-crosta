@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { useCart } from '@/lib/cart-context'
+import { useCartStore } from '@/store/cart-store'
 import { ShoppingCart, Menu, X, User, ChevronDown } from 'lucide-react'
+import { getCurrentUser, signOut } from '@/lib/auth'
 
 interface SessionUser {
   id: string
@@ -12,17 +13,15 @@ interface SessionUser {
 }
 
 export function Header() {
-  const { totalItems } = useCart()
+  const totalItems = useCartStore((state) => state.getTotalItems())
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const [user, setUser] = useState<SessionUser | null>(null)
 
   useEffect(() => {
     async function fetchSession() {
-      const response = await fetch('/api/auth/session')
-      if (!response.ok) return
-      const data = await response.json()
-      setUser(data.user)
+      const user = await getCurrentUser()
+      setUser(user as SessionUser | null)
     }
 
     fetchSession()
@@ -106,12 +105,12 @@ export function Header() {
                     >
                       Profile
                     </Link>
-                    <Link
-                      href="/api/auth/logout"
-                      className="rounded-2xl px-3 py-2 text-sm text-foreground transition hover:bg-muted"
+                    <button
+                      onClick={() => signOut()}
+                      className="rounded-2xl px-3 py-2 text-sm text-foreground transition hover:bg-muted text-left"
                     >
                       Logout
-                    </Link>
+                    </button>
                   </div>
                 </div>
               )}
@@ -165,9 +164,9 @@ export function Header() {
               </Link>
             )}
             {user ? (
-              <Link href="/api/auth/logout" className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted">
+              <button onClick={() => signOut()} className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted text-left">
                 Logout
-              </Link>
+              </button>
             ) : (
               <>
                 <Link href="/auth/login" className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted">

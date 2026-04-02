@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { requireAuth } from '@/lib/auth'
+import { requireAuth, signOut } from '@/lib/auth'
 
 export const metadata = {
   title: 'Bella Crosta — Profile',
@@ -70,12 +70,14 @@ export default async function ProfilePage() {
                   >
                     View cart
                   </Link>
-                  <Link
-                    href="/api/auth/logout"
-                    className="rounded-2xl bg-destructive px-4 py-3 text-sm font-semibold text-white transition hover:bg-destructive/90"
-                  >
-                    Sign out
-                  </Link>
+                  <form action={signOut}>
+                    <button
+                      type="submit"
+                      className="rounded-2xl w-full text-left bg-destructive px-4 py-3 text-sm font-semibold text-white transition hover:bg-destructive/90"
+                    >
+                      Sign out
+                    </button>
+                  </form>
                 </div>
               </section>
             </div>
