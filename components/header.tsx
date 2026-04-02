@@ -1,31 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useCartStore } from '@/store/cart-store'
 import { ShoppingCart, Menu, X, User, ChevronDown } from 'lucide-react'
-import { getCurrentUser } from '@/lib/auth'
-
-interface SessionUser {
-  id: string
-  email: string
-  role: string
-}
+import { useAuthStore } from '@/store/auth-store'
 
 export function Header() {
   const totalItems = useCartStore((state) => state.getTotalItems())
+  const { user } = useAuthStore()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
-  const [user, setUser] = useState<SessionUser | null>(null)
-
-  useEffect(() => {
-    async function fetchSession() {
-      const user = await getCurrentUser()
-      setUser(user as SessionUser | null)
-    }
-
-    fetchSession()
-  }, [])
 
   const initials = user?.email
     ? user.email

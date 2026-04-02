@@ -14,7 +14,7 @@ import {
   Loader2,
   ExternalLink,
 } from "lucide-react";
-import { getCurrentUser } from "@/lib/auth";
+import { useAuthStore } from "@/store/auth-store";
 
 // Visual timeline of order progress
 const ORDER_STEPS = [
@@ -33,14 +33,15 @@ export default function OrderPage() {
   const orderId = params.id as string;
 
   const { currentOrder: order, loadingOrder: loading, fetchOrderById } = useAppStore();
+  const { user, initialized: authInitialized } = useAuthStore()
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!authInitialized) return; // Wait until we know auth status
+
     async function fetchData() {
       try {
-        const currentUser = await getCurrentUser();
-
-        if (!currentUser) {
+        if (!user) {
           setError("Please sign in to view your order.");
           return;
         }
@@ -51,8 +52,8 @@ export default function OrderPage() {
         if (!orderData) {
           setError("Order not found.");
         } else if (
-          currentUser.role !== "admin" &&
-          orderData.customer_id !== currentUser.id
+          user.role !== "admin" &&
+          orderData.customer_id !== user.id
         ) {
           setError("You do not have permission to view this order.");
         }
@@ -63,7 +64,7 @@ export default function OrderPage() {
     }
 
     fetchData();
-  }, [orderId, fetchOrderById]);
+  }, [orderId, fetchOrderById, user, authInitialized]);
 
   if (loading) {
     return (
