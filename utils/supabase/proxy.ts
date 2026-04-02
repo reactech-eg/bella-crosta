@@ -10,30 +10,30 @@ const LEGACY_SESSION_COOKIE = "supabase-auth-token";
 
 export const createClient = async (request: NextRequest) => {
   // Create an unmodified response
-  let supabaseResponse = NextResponse.next({
+  const supabaseResponse = NextResponse.next({
     request: {
       headers: request.headers,
     },
   });
 
-  const supabase = createServerClient(supabaseUrl!, supabaseKey!, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
-      },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) =>
-          request.cookies.set(name, value),
-        );
-        supabaseResponse = NextResponse.next({
-          request,
-        });
-        cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, options),
-        );
-      },
-    },
-  });
+  //   const supabase = createServerClient(supabaseUrl!, supabaseKey!, {
+  //     cookies: {
+  //       getAll() {
+  //         return request.cookies.getAll();
+  //       },
+  //       setAll(cookiesToSet) {
+  //         cookiesToSet.forEach(({ name, value, options }) =>
+  //           request.cookies.set(name, value),
+  //         );
+  //         supabaseResponse = NextResponse.next({
+  //           request,
+  //         });
+  //         cookiesToSet.forEach(({ name, value, options }) =>
+  //           supabaseResponse.cookies.set(name, value, options),
+  //         );
+  //       },
+  //     },
+  //   });
 
   // ── Resolve user identity ─────────────────────────────────────────────────
   const { pathname } = request.nextUrl;
@@ -48,15 +48,21 @@ export const createClient = async (request: NextRequest) => {
   if (token) {
     try {
       // Use service role client for role checking to bypass RLS in middleware
-      const adminClient = createServerClient(supabaseUrl!, (supabaseRoleKey || supabaseKey)!, {
-        cookies: {
-          getAll: () => request.cookies.getAll(),
-          setAll: () => {}, 
+      const adminClient = createServerClient(
+        supabaseUrl!,
+        (supabaseRoleKey || supabaseKey)!,
+        {
+          cookies: {
+            getAll: () => request.cookies.getAll(),
+            setAll: () => {},
+          },
+          auth: { persistSession: false, autoRefreshToken: false },
         },
-        auth: { persistSession: false, autoRefreshToken: false },
-      });
+      );
 
-      const { data: { user } } = await adminClient.auth.getUser(token);
+      const {
+        data: { user },
+      } = await adminClient.auth.getUser(token);
 
       if (user) {
         userId = user.id;

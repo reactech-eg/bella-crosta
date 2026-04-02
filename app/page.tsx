@@ -1,65 +1,114 @@
-import Image from "next/image";
+import Link from 'next/link'
+import { Header } from '@/components/header'
+import { ProductCard } from '@/components/product-card'
+import { getFeaturedProducts } from '@/lib/db'
+import { ArrowRight, Clock, Truck, Shield } from 'lucide-react'
 
-export default function Home() {
+export const metadata = {
+  title: 'Bella Crosta - Premium Pizza Delivery',
+  description: 'Authentic Italian pizzas delivered fresh to your door',
+}
+
+export default async function Home() {
+  const featured = await getFeaturedProducts()
+  
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-background">
+      <Header />
+
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-primary/10 via-background to-background border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="text-center">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6">
+              Authentic Italian Pizzas
+            </h1>
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Crafted with premium ingredients and delivered fresh to your door. Experience the taste of Italy.
+            </p>
+            <div className="flex gap-4 justify-center flex-wrap">
+              <Link
+                href="/menu"
+                className="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition"
+              >
+                Order Now
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                href="#featured"
+                className="inline-flex items-center gap-2 border border-primary text-primary px-6 py-3 rounded-lg font-semibold hover:bg-primary/10 transition"
+              >
+                View Featured
+              </Link>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* Features Section */}
+      <section className="bg-background border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <Clock className="w-12 h-12 text-primary mx-auto mb-4" />
+              <h3 className="font-semibold text-lg mb-2">Fast Delivery</h3>
+              <p className="text-muted-foreground">
+                Hot and fresh pizzas delivered within 30 minutes
+              </p>
+            </div>
+            <div className="text-center">
+              <Truck className="w-12 h-12 text-primary mx-auto mb-4" />
+              <h3 className="font-semibold text-lg mb-2">Free Delivery</h3>
+              <p className="text-muted-foreground">
+                Free delivery on orders over $50
+              </p>
+            </div>
+            <div className="text-center">
+              <Shield className="w-12 h-12 text-primary mx-auto mb-4" />
+              <h3 className="font-semibold text-lg mb-2">Quality Guaranteed</h3>
+              <p className="text-muted-foreground">
+                100% satisfaction guaranteed or your money back
+              </p>
+            </div>
+          </div>
         </div>
-      </main>
+      </section>
+
+     
+
+      {/* Featured Products Section */}
+      {featured.length > 0 && (
+        <section id="featured" className="bg-background border-b border-border">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <h2 className="text-3xl font-bold mb-8">Featured Pizzas</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featured.map((product) => (
+                <ProductCard key={product.id} {...product} />
+              ))}
+            </div>
+            <div className="text-center mt-8">
+              <Link
+                href="/menu"
+                className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition"
+              >
+                View All Menu
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Footer */}
+      <footer className="bg-muted border-t border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center text-muted-foreground text-sm">
+            <p>&copy; 2024 Bella Crosta. All rights reserved.</p>
+            <p className="mt-2">Authentic Italian pizzas delivered fresh</p>
+          </div>
+        </div>
+      </footer>
     </div>
-  );
+  )
 }
