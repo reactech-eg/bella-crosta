@@ -85,7 +85,7 @@ export const createClient = async (request: NextRequest) => {
 
   // Route categories
   const GUEST_ONLY_ROUTES = ["/auth/login", "/auth/signup"];
-  const ADMIN_ROUTES = ["/admin"];
+  const ADMIN_ROUTES = ["/admin/dashboard", "/admin/orders", "/admin/payments", "/admin/inventory", "/admin"];
   const PROTECTED_ROUTES = ["/checkout", "/order", "/my-orders"];
 
   /**
