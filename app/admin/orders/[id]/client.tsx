@@ -67,45 +67,40 @@ export default function AdminOrderDetailPage() {
     })[s] ?? "bg-muted text-muted-foreground";
 
   return (
-    <div className="flex h-screen bg-background">
-      <div className="hidden md:block w-64 shrink-0">
-        <AdminSidebar />
-      </div>
+    <>
       {mobile && <AdminSidebar mobile onClose={() => setMobile(false)} />}
-
-      <div className="flex-1 overflow-auto">
-        <div className="bg-card border-b border-border px-4 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/admin/orders"
-              className="text-muted-foreground hover:text-primary text-sm flex items-center gap-1"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Orders</span>
-            </Link>
-            <span className="text-muted-foreground">/</span>
-            <h1 className="text-base font-bold text-foreground">
-              {order?.order_number ?? "…"}
-            </h1>
-          </div>
-          <button
-            onClick={() => setMobile(true)}
-            className="md:hidden p-2 hover:bg-muted rounded-lg"
+      <div className="bg-card border-b border-border px-4 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/orders"
+            className="text-muted-foreground hover:text-primary text-sm flex items-center gap-1"
           >
-            <Menu className="w-5 h-5" />
-          </button>
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Orders</span>
+          </Link>
+          <span className="text-muted-foreground">/</span>
+          <h1 className="text-base font-bold text-foreground">
+            {order?.order_number ?? "…"}
+          </h1>
         </div>
+        <button
+          onClick={() => setMobile(true)}
+          className="md:hidden p-2 hover:bg-muted rounded-lg"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+      </div>
 
-        {loading ? (
-          <div className="p-8 text-center text-muted-foreground text-sm">
-            Loading order…
-          </div>
-        ) : !order ? (
-          <div className="p-8 text-center text-muted-foreground text-sm">
-            Order not found.
-          </div>
-        ) : (
-          <div className="p-4 sm:p-6 max-w-4xl">
+      {loading ? (
+        <div className="p-8 text-center text-muted-foreground text-sm">
+          Loading order…
+        </div>
+      ) : !order ? (
+        <div className="p-8 text-center text-muted-foreground text-sm">
+          Order not found.
+        </div>
+      ) : (
+        <div className="p-4 sm:p-6 max-w-4xl">
             <div className="grid lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-5">
                 {/* Summary */}
@@ -320,7 +315,6 @@ export default function AdminOrderDetailPage() {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </>
   );
 }
