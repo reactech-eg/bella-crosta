@@ -122,6 +122,11 @@ export const createClient = async (request: NextRequest) => {
     return supabaseResponse;
   }
 
+  // ── Home page — redirect admins to dashboard ──────────────────────────────
+  if (pathname === "/" && isAdmin) {
+    return redirectNoStore(new URL("/admin/dashboard", request.url));
+  }
+
   // ── Protected customer routes — require login ────────────────────────────
   if (PROTECTED_ROUTES.some((r) => pathname.startsWith(r))) {
     if (!isLoggedIn) {

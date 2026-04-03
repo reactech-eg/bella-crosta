@@ -55,24 +55,19 @@ export default function AdminInventoryPage() {
   const inStock = products.filter((p) => p.stock_qty > LOW);
 
   return (
-    <div className="flex h-screen bg-background">
-      <div className="hidden md:block w-64 shrink-0">
-        <AdminSidebar />
-      </div>
+    <>
       {mobile && <AdminSidebar mobile onClose={() => setMobile(false)} />}
+      <div className="bg-card border-b border-border px-4 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+        <h1 className="text-xl font-bold text-foreground">Inventory</h1>
+        <button
+          onClick={() => setMobile(true)}
+          className="md:hidden p-2 hover:bg-muted rounded-lg"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+      </div>
 
-      <div className="flex-1 overflow-auto">
-        <div className="bg-card border-b border-border px-4 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-          <h1 className="text-xl font-bold text-foreground">Inventory</h1>
-          <button
-            onClick={() => setMobile(true)}
-            className="md:hidden p-2 hover:bg-muted rounded-lg"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="p-4 sm:p-6">
+      <div className="p-4 sm:p-6">
           {/* Summary */}
           <div className="grid grid-cols-3 gap-4 mb-6">
             <div className="bg-card border border-border rounded-xl p-4 text-center">
@@ -213,7 +208,6 @@ export default function AdminInventoryPage() {
             )}
           </div>
         </div>
-      </div>
-    </div>
+    </>
   );
 }
