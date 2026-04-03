@@ -58,9 +58,9 @@ export const createClient = async (request: NextRequest) => {
   const isLoggedIn = !!userId;
 
   // ── Routes ───────────────────────────────────────────────
-  const GUEST_ONLY = ["/auth/login", "/auth/signup"];
-  const ADMIN = ["/admin"];
-  const PROTECTED = ["/checkout", "/order", "/my-orders"];
+  const GUEST_ONLY_ROUTES = ["/auth/login", "/auth/signup"];
+  const ADMIN_ROUTES = ["/admin"];
+  const PROTECTED_ROUTES = ["/checkout", "/order", "/my-orders"];
 
   // ── Safe redirect helper ───────────────────────────────────
   const safeRedirect = (to: string) => {
@@ -69,7 +69,7 @@ export const createClient = async (request: NextRequest) => {
   };
 
   // ── Guest صفحات ───────────────────────────────────────────
-  if (GUEST_ONLY.some((r) => pathname.startsWith(r))) {
+  if (GUEST_ONLY_ROUTES.some((r) => pathname.startsWith(r))) {
     if (isLoggedIn) {
       return safeRedirect(isAdmin ? "/admin/dashboard" : "/");
     }
@@ -77,7 +77,7 @@ export const createClient = async (request: NextRequest) => {
   }
 
   // ── Admin pages ───────────────────────────────────────────
-  if (ADMIN.some((r) => pathname.startsWith(r))) {
+  if (ADMIN_ROUTES.some((r) => pathname.startsWith(r))) {
     if (!isLoggedIn) {
       return safeRedirect("/auth/login");
     }
@@ -95,7 +95,7 @@ export const createClient = async (request: NextRequest) => {
   }
 
   // ── Protected pages ───────────────────────────────────────
-  if (PROTECTED.some((r) => pathname.startsWith(r))) {
+  if (PROTECTED_ROUTES.some((r) => pathname.startsWith(r))) {
     if (!isLoggedIn) {
       const loginUrl = new URL("/auth/login", request.url);
       loginUrl.searchParams.set("returnUrl", pathname);
