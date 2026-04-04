@@ -16,7 +16,7 @@ const FILTERS = [
 ];
 
 export default function AdminOrdersPage() {
-  const { orders, loadingOrders: loading, fetchOrders } = useAdminStore();
+  const { orders, loading, fetchOrders } = useAdminStore();
   const [mobile, setMobile] = useState(false);
   const [filter, setFilter] = useState("all");
 
@@ -70,7 +70,7 @@ export default function AdminOrdersPage() {
         </div>
 
         <div className="bg-card border border-border rounded-xl overflow-hidden">
-          {loading ? (
+          {loading.orders ? (
             <div className="p-8 text-center text-muted-foreground text-sm">
               Loading…
             </div>
