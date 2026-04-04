@@ -9,7 +9,7 @@ import { useCartStore } from "@/store/cart-store";
 import { createOrder } from "@/lib/actions";
 import { ArrowLeft, Loader2, AlertCircle, Upload, X } from "lucide-react";
 import Image from "next/image";
-import { CartItem } from "@/lib/types";
+import type { CartItem } from "@/lib/types";
 import { getCurrentUser } from "@/lib/auth";
 
 interface SessionUser {
@@ -37,27 +37,28 @@ export default function CheckoutPage() {
   const [deliveryNotes, setDeliveryNotes] = useState("");
 
   // Payment
-  const [paymentMethod, setPaymentMethod] = useState<
-    "instapay" | "vodafone_cash"
-  >("instapay");
-  const [proofImage, setProofImage] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<"instapay" | "vodafone_cash">("instapay");
+  const [proofImage, setProofImage] = useState<string | null>(null); // base64
 
-  // Check auth via the session API (reads the bc_session cookie)
   useEffect(() => {
     async function fetchSession() {
       try {
-        const user = await getCurrentUser()
-        setUser(user as SessionUser | null)
+        const u = await getCurrentUser();
+        setUser(u as SessionUser | null);
       } finally {
-        setCheckingAuth(false)
+        setCheckingAuth(false);
       }
     }
-    fetchSession()
+    fetchSession();
   }, []);
 
   const handleProof = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image must be under 5MB.");
+      return;
+    }
     const reader = new FileReader();
     reader.onload = (ev) => setProofImage(ev.target?.result as string);
     reader.readAsDataURL(file);
@@ -67,22 +68,11 @@ export default function CheckoutPage() {
     e.preventDefault();
     setError("");
 
-    if (!user) {
-      setError("Please sign in to place an order.");
-      return;
-    }
-    if (!fullName.trim()) {
-      setError("Please enter your full name.");
-      return;
-    }
-    if (!address.trim()) {
-      setError("Please enter your delivery address.");
-      return;
-    }
-    if (!proofImage) {
-      setError("Please upload your payment screenshot.");
-      return;
-    }
+    if (!user) { setError("Please sign in to place an order."); return; }
+    if (!fullName.trim()) { setError("Please enter your full name."); return; }
+    if (!phone.trim()) { setError("Please enter your phone number."); return; }
+    if (!address.trim()) { setError("Please enter your delivery address."); return; }
+    if (!proofImage) { setError("Please upload your payment screenshot."); return; }
 
     startTransition(async () => {
       const result = await createOrder(
@@ -97,11 +87,11 @@ export default function CheckoutPage() {
         address.trim(),
         deliveryNotes.trim(),
         paymentMethod,
-        // proofImage
+        proofImage, // ✅ NOW PROPERLY SENT
       );
 
       if (!result.success) {
-        setError(result.error);
+        setError((result as { success: false; error: string }).error);
         return;
       }
 
@@ -117,12 +107,8 @@ export default function CheckoutPage() {
         <Header />
         <div className="max-w-lg mx-auto px-4 py-20 text-center">
           <p className="text-5xl mb-6">🛒</p>
-          <h1 className="text-2xl font-bold text-foreground mb-3">
-            Your cart is empty
-          </h1>
-          <p className="text-muted-foreground mb-8">
-            Add some pizzas before checking out.
-          </p>
+          <h1 className="text-2xl font-bold text-foreground mb-3">Your cart is empty</h1>
+          <p className="text-muted-foreground mb-8">Add some pizzas before checking out.</p>
           <Link
             href="/menu"
             className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-semibold hover:bg-accent transition"
@@ -135,7 +121,6 @@ export default function CheckoutPage() {
     );
   }
 
-  // ── Loading ──
   if (checkingAuth) {
     return (
       <div className="min-h-screen bg-background">
@@ -147,32 +132,23 @@ export default function CheckoutPage() {
     );
   }
 
-  // ── Not logged in ──
   if (!user) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <Link
-            href="/cart"
-            className="inline-flex items-center gap-2 text-primary hover:underline text-sm mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to cart
+          <Link href="/cart" className="inline-flex items-center gap-2 text-primary hover:underline text-sm mb-6">
+            <ArrowLeft className="w-4 h-4" /> Back to cart
           </Link>
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <h1 className="text-2xl font-bold text-foreground mb-2">
-                Sign in to checkout
-              </h1>
-              <p className="text-muted-foreground mb-6">
-                Create an account or sign in to place your order.
-              </p>
+              <h1 className="text-2xl font-bold text-foreground mb-2">Sign in to checkout</h1>
+              <p className="text-muted-foreground mb-6">Create an account or sign in to place your order.</p>
               <AuthForm
                 mode="signup"
                 onSuccess={async () => {
-                  const u = await getCurrentUser()
-                  setUser(u as SessionUser | null)
+                  const u = await getCurrentUser();
+                  setUser(u as SessionUser | null);
                 }}
               />
             </div>
@@ -188,78 +164,38 @@ export default function CheckoutPage() {
     vodafone_cash: { label: "Vodafone Cash", detail: "01098765432" },
   };
 
-  // ── Checkout form ──
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <Link
-          href="/cart"
-          className="inline-flex items-center gap-2 text-primary hover:underline text-sm mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to cart
+        <Link href="/cart" className="inline-flex items-center gap-2 text-primary hover:underline text-sm mb-6">
+          <ArrowLeft className="w-4 h-4" /> Back to cart
         </Link>
 
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-5">
-            {/* Delivery details */}
+            {/* Delivery */}
             <section className="bg-card border border-border rounded-xl p-5">
-              <h2 className="font-semibold text-foreground mb-4">
-                📍 Delivery Details
-              </h2>
+              <h2 className="font-semibold text-foreground mb-4">📍 Delivery Details</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
-                  <label className="text-xs font-medium text-secondary-foreground block mb-1.5">
-                    Full Name *
-                  </label>
-                  <input
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Ahmed Hassan"
-                    required
-                    className="field"
-                  />
+                  <label className="text-xs font-medium text-secondary-foreground block mb-1.5">Full Name *</label>
+                  <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Ahmed Hassan" required className="field" />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-secondary-foreground block mb-1.5">
-                    Phone *
-                  </label>
-                  <input
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="01012345678"
-                    required
-                    className="field"
-                  />
+                  <label className="text-xs font-medium text-secondary-foreground block mb-1.5">Phone *</label>
+                  <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01012345678" required className="field" />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-secondary-foreground block mb-1.5">
-                    Alternative Phone
-                  </label>
-                  <input
-                    value={altPhone}
-                    onChange={(e) => setAltPhone(e.target.value)}
-                    placeholder="Optional"
-                    className="field"
-                  />
+                  <label className="text-xs font-medium text-secondary-foreground block mb-1.5">Alternative Phone</label>
+                  <input value={altPhone} onChange={(e) => setAltPhone(e.target.value)} placeholder="Optional" className="field" />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="text-xs font-medium text-secondary-foreground block mb-1.5">
-                    Detailed Address *
-                  </label>
-                  <input
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Street, building, floor, apartment…"
-                    required
-                    className="field"
-                  />
+                  <label className="text-xs font-medium text-secondary-foreground block mb-1.5">Detailed Address *</label>
+                  <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Street, building, floor, apartment…" required className="field" />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="text-xs font-medium text-secondary-foreground block mb-1.5">
-                    Delivery Notes
-                  </label>
+                  <label className="text-xs font-medium text-secondary-foreground block mb-1.5">Delivery Notes</label>
                   <textarea
                     value={deliveryNotes}
                     onChange={(e) => setDeliveryNotes(e.target.value)}
@@ -273,9 +209,7 @@ export default function CheckoutPage() {
 
             {/* Payment method */}
             <section className="bg-card border border-border rounded-xl p-5">
-              <h2 className="font-semibold text-foreground mb-4">
-                💳 Payment Method
-              </h2>
+              <h2 className="font-semibold text-foreground mb-4">💳 Payment Method</h2>
               <div className="flex gap-3 flex-wrap mb-4">
                 {(["instapay", "vodafone_cash"] as const).map((method) => (
                   <button
@@ -285,7 +219,7 @@ export default function CheckoutPage() {
                     className={`flex-1 min-w-35 py-3 rounded-xl border text-sm font-medium transition capitalize ${
                       paymentMethod === method
                         ? "border-primary bg-primary/10 text-foreground"
-                        : "border-border bg-input text-muted-foreground hover:text-foreground hover:border-border/60"
+                        : "border-border bg-input text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     {method === "instapay" ? "🔵 Instapay" : "🔴 Vodafone Cash"}
@@ -293,35 +227,20 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
-              {/* Instructions */}
               <div className="bg-primary/8 border border-primary/20 rounded-xl p-4 mb-4">
                 <p className="text-xs text-muted-foreground mb-1">
-                  Send{" "}
-                  <strong className="text-primary">
-                    ${totalPrice.toFixed(2)}
-                  </strong>{" "}
-                  to:
+                  Send <strong className="text-primary">${totalPrice.toFixed(2)}</strong> to:
                 </p>
-                <p className="font-semibold text-foreground text-sm">
-                  {paymentInfo[paymentMethod].label}
-                </p>
-                <p className="text-sm text-secondary-foreground font-mono">
-                  {paymentInfo[paymentMethod].detail}
-                </p>
+                <p className="font-semibold text-foreground text-sm">{paymentInfo[paymentMethod].label}</p>
+                <p className="text-sm text-secondary-foreground font-mono">{paymentInfo[paymentMethod].detail}</p>
               </div>
 
-              {/* Proof upload */}
               <label className="text-xs font-medium text-secondary-foreground block mb-2">
                 Upload Payment Screenshot *
               </label>
               {proofImage ? (
-                <div className="relative max-h-40 rounded-xl border border-border overflow-hidden">
-                  <Image
-                    src={proofImage}
-                    alt="Payment proof"
-                    fill
-                    className=" object-contain"
-                  />
+                <div className="relative max-h-48 rounded-xl border border-border overflow-hidden">
+                  <Image src={proofImage} alt="Payment proof" fill className="object-contain" />
                   <button
                     type="button"
                     onClick={() => setProofImage(null)}
@@ -333,18 +252,9 @@ export default function CheckoutPage() {
               ) : (
                 <label className="flex flex-col items-center gap-2 border-2 border-dashed border-border rounded-xl py-8 cursor-pointer hover:border-primary/50 transition-colors">
                   <Upload className="w-7 h-7 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">
-                    Click to upload screenshot
-                  </span>
-                  <span className="text-xs text-muted-foreground/60">
-                    PNG, JPG up to 5MB
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleProof}
-                    className="hidden"
-                  />
+                  <span className="text-sm text-muted-foreground">Click to upload screenshot</span>
+                  <span className="text-xs text-muted-foreground/60">PNG, JPG up to 5MB</span>
+                  <input type="file" accept="image/*" onChange={handleProof} className="hidden" />
                 </label>
               )}
             </section>
@@ -364,13 +274,10 @@ export default function CheckoutPage() {
               className="w-full flex items-center justify-center gap-2 py-3.5 bg-primary hover:bg-accent text-primary-foreground font-bold rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
               {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-              {isPending
-                ? "Placing Order…"
-                : `Confirm Order — $${totalPrice.toFixed(2)}`}
+              {isPending ? "Placing Order…" : `Confirm Order — $${totalPrice.toFixed(2)}`}
             </button>
           </div>
 
-          {/* Order summary */}
           <OrderSummaryCard items={items} total={totalPrice} />
         </div>
       </div>
@@ -388,36 +295,22 @@ export default function CheckoutPage() {
           outline: none;
           transition: box-shadow 0.2s;
         }
-        .field:focus {
-          box-shadow: 0 0 0 2px hsl(var(--ring));
-        }
-        .field::placeholder {
-          color: hsl(var(--muted-foreground));
-        }
+        .field:focus { box-shadow: 0 0 0 2px hsl(var(--ring)); }
+        .field::placeholder { color: hsl(var(--muted-foreground)); }
       `}</style>
     </div>
   );
 }
 
-function OrderSummaryCard({
-  items,
-  total,
-}: {
-  items: CartItem[];
-  total: number;
-}) {
+function OrderSummaryCard({ items, total }: { items: CartItem[]; total: number }) {
   return (
     <div className="bg-card border border-border rounded-xl p-5 h-fit sticky top-20">
       <h3 className="font-semibold text-foreground mb-4">Order Summary</h3>
       <div className="space-y-2.5 mb-4">
         {items.map((item) => (
           <div key={item.productId} className="flex justify-between text-sm">
-            <span className="text-muted-foreground">
-              {item.name} × {item.quantity}
-            </span>
-            <span className="text-foreground font-medium">
-              ${(item.price * item.quantity).toFixed(2)}
-            </span>
+            <span className="text-muted-foreground">{item.name} × {item.quantity}</span>
+            <span className="text-foreground font-medium">${(item.price * item.quantity).toFixed(2)}</span>
           </div>
         ))}
       </div>

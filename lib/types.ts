@@ -9,6 +9,40 @@ export interface Product {
   is_available: boolean;
   stock_qty: number;
   created_at: string;
+  // Populated via join when needed
+  product_ingredients?: ProductIngredient[];
+}
+
+export interface RawMaterial {
+  id: string;
+  name: string;
+  unit: string;               // g, kg, ml, l, pcs, etc.
+  stock_qty: number;
+  low_threshold: number;
+  cost_per_unit: number;
+  supplier: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProductIngredient {
+  id: string;
+  product_id: string;
+  raw_material_id: string;
+  quantity_needed: number;
+  created_at: string;
+  // Populated via join
+  raw_materials?: RawMaterial;
+}
+
+export interface RawMaterialDeduction {
+  id: string;
+  order_id: string;
+  raw_material_id: string;
+  quantity_deducted: number;
+  deducted_at: string;
+  raw_materials?: RawMaterial;
 }
 
 export interface Customer {
@@ -84,3 +118,22 @@ export interface SessionUser {
 export type AuthResult =
   | { success: true; redirectTo: string }
   | { success: false; error: string };
+
+// Form types for admin product management
+export interface ProductFormData {
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  image_url: string;
+  is_featured: boolean;
+  stock_qty: number;
+  ingredients: IngredientFormItem[];
+}
+
+export interface IngredientFormItem {
+  raw_material_id: string;
+  raw_material_name: string;
+  unit: string;
+  quantity_needed: number;
+}

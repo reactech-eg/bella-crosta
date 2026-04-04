@@ -11,8 +11,9 @@ import {
   Users,
   LogOut,
   X,
+  FlaskConical,
+  ChefHat,
 } from "lucide-react";
-
 
 interface AdminSidebarProps {
   mobile?: boolean;
@@ -22,6 +23,7 @@ interface AdminSidebarProps {
 export function AdminSidebar({ mobile = false, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const [signingOut, setSigningOut] = useState(false);
+
   const handleLogout = () => {
     if (signingOut) return;
     setSigningOut(true);
@@ -32,7 +34,9 @@ export function AdminSidebar({ mobile = false, onClose }: AdminSidebarProps) {
     { href: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/admin/orders", icon: ShoppingCart, label: "Orders" },
     { href: "/admin/payments", icon: CreditCard, label: "Payments" },
+    { href: "/admin/products", icon: ChefHat, label: "Products" },
     { href: "/admin/inventory", icon: Package, label: "Inventory" },
+    { href: "/admin/raw-materials", icon: FlaskConical, label: "Raw Materials" },
     { href: "/admin/customers", icon: Users, label: "Customers" },
   ];
 
@@ -67,7 +71,7 @@ export function AdminSidebar({ mobile = false, onClose }: AdminSidebarProps) {
       </div>
 
       {/* Nav links */}
-      <nav className="flex-1 px-3 space-y-0.5" aria-label="Admin navigation">
+      <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto" aria-label="Admin navigation">
         {nav.map(({ href, icon: Icon, label }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
@@ -89,7 +93,7 @@ export function AdminSidebar({ mobile = false, onClose }: AdminSidebarProps) {
         })}
       </nav>
 
-      {/* Sign out button */}
+      {/* Sign out */}
       <div className="p-3 border-t border-sidebar-border">
         <button
           onClick={handleLogout}

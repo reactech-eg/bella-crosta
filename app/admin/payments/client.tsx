@@ -9,7 +9,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 
 export default function AdminPaymentsPage() {
-  const { orders, loadingOrders: loading, fetchOrders } = useAdminStore();
+  const { orders, loading, fetchOrders } = useAdminStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [filter, setFilter] = useState<"uploaded" | "confirmed" | "all">(
     "uploaded",
@@ -140,7 +140,7 @@ export default function AdminPaymentsPage() {
           </div>
 
           <div className="bg-card border border-border rounded-xl overflow-hidden">
-            {loading ? (
+            {loading.orders ? (
               <div className="p-8 text-center text-muted-foreground text-sm">
                 Loading…
               </div>

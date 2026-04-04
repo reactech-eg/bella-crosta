@@ -6,7 +6,7 @@ import { useAdminStore } from "@/store/admin-store";
 import { Menu, Mail, Phone, Calendar } from "lucide-react";
 
 export default function AdminCustomersClient() {
-  const { customers, loadingCustomers, fetchCustomers } = useAdminStore();
+  const { customers, loading, fetchCustomers } = useAdminStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function AdminCustomersClient() {
           </div>
 
           <div className="bg-card border border-border rounded-xl overflow-hidden">
-            {loadingCustomers ? (
+            {loading.customers ? (
               <div className="p-8 text-center text-muted-foreground text-sm">
                 Loading…
               </div>
