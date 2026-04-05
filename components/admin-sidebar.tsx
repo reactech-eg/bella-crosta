@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { signOut } from "@/lib/auth";
+import { createClient } from "@/utils/supabase/client";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -24,10 +26,16 @@ export function AdminSidebar({ mobile = false, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const [signingOut, setSigningOut] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (signingOut) return;
     setSigningOut(true);
-    window.location.href = "/auth/logout";
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      await signOut();
+    } catch {
+      setSigningOut(false);
+    }
   };
 
   const nav = [

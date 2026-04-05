@@ -71,6 +71,7 @@ function SignupForm() {
   const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState('')
   const [isPending, startTransition] = useTransition()
+  const [step, setStep] = useState<'form' | 'check-email'>('form')
 
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(prev => ({ ...prev, [key]: e.target.value }))
@@ -102,14 +103,52 @@ function SignupForm() {
         return
       }
 
-      // returnUrl overrides role-based redirect only for customer routes
+      if ('emailSent' in result && result.emailSent) {
+        setStep('check-email')
+        return
+      }
+
+      // If no email confirmation is required, handle normally
       const dest = returnUrl && !returnUrl.startsWith('/admin')
         ? returnUrl
-        : result.redirectTo
+        : (result as { redirectTo: string }).redirectTo || '/'
 
       router.push(dest)
       router.refresh()
     })
+  }
+
+  if (step === 'check-email') {
+    return (
+      <div className="w-full max-w-md">
+        <div className="bg-card border border-border rounded-2xl p-8 shadow-2xl text-center flex flex-col items-center">
+          <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-6">
+            <Mail className="w-8 h-8" />
+          </div>
+          <h1 className="text-3xl font-bold text-foreground mb-3" style={{ fontFamily: 'var(--font-display)' }}>
+            Check your email
+          </h1>
+          <p className="text-muted-foreground text-sm mb-6 max-w-sm">
+            We sent a confirmation link to <span className="font-semibold text-foreground">{form.email}</span>. 
+            Please click it to activate your account.
+          </p>
+          <div className="space-y-3 w-full">
+            <button
+              onClick={() => window.location.href = '/auth/login'}
+              className="w-full py-3 px-6 rounded-xl bg-primary hover:bg-accent text-primary-foreground font-semibold text-sm transition-all duration-200"
+            >
+              Go to sign in
+            </button>
+            <button
+              onClick={() => { setStep('form'); setError(''); }}
+              className="w-full py-3 px-6 rounded-xl border border-border text-foreground hover:bg-secondary text-sm font-medium transition-all duration-200"
+            >
+              Use a different email
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

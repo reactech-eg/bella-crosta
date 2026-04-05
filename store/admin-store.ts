@@ -1,3 +1,5 @@
+"use client";
+
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import type { Customer, Product, Order, RawMaterial } from "@/lib/types";
@@ -115,7 +117,7 @@ export const useAdminStore = create<AdminStore>()(
         try {
           const data = await getAllCustomers();
           set((s) => ({ customers: data, loading: { ...s.loading, customers: false } }));
-        } catch (e) {
+        } catch {
           set((s) => ({
             loading: { ...s.loading, customers: false },
             errors: { ...s.errors, customers: "Failed to load customers." },
@@ -129,7 +131,7 @@ export const useAdminStore = create<AdminStore>()(
         try {
           const data = await getAllProducts();
           set((s) => ({ products: data, loading: { ...s.loading, products: false } }));
-        } catch (e) {
+        } catch {
           set((s) => ({
             loading: { ...s.loading, products: false },
             errors: { ...s.errors, products: "Failed to load products." },
@@ -178,7 +180,7 @@ export const useAdminStore = create<AdminStore>()(
         try {
           const data = await getAllOrders();
           set((s) => ({ orders: data, loading: { ...s.loading, orders: false } }));
-        } catch (e) {
+        } catch {
           set((s) => ({
             loading: { ...s.loading, orders: false },
             errors: { ...s.errors, orders: "Failed to load orders." },
@@ -203,7 +205,7 @@ export const useAdminStore = create<AdminStore>()(
                 : [...s.orders, data]
               : s.orders,
           }));
-        } catch (e) {
+        } catch {
           set((s) => ({
             loading: { ...s.loading, currentOrder: false },
             errors: { ...s.errors, currentOrder: "Failed to load order." },
@@ -217,7 +219,7 @@ export const useAdminStore = create<AdminStore>()(
         try {
           const data = await getAllRawMaterials();
           set((s) => ({ rawMaterials: data, loading: { ...s.loading, rawMaterials: false } }));
-        } catch (e) {
+        } catch {
           set((s) => ({
             loading: { ...s.loading, rawMaterials: false },
             errors: { ...s.errors, rawMaterials: "Failed to load raw materials." },

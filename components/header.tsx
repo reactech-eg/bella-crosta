@@ -1,26 +1,35 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { useState } from 'react'
-import { useCartStore } from '@/store/cart-store'
-import { ShoppingCart, Menu, X, User, ChevronDown } from 'lucide-react'
-import { useAuthStore } from '@/store/auth-store'
-
+import Link from "next/link";
+import { useState } from "react";
+import { useCartStore } from "@/store/cart-store";
+import { ShoppingCart, Menu, X, User, ChevronDown } from "lucide-react";
+import { useUser } from "@/hooks/use-user";
+import { signOut } from "@/lib/auth";
+import { createClient } from "@/utils/supabase/client";
 export function Header() {
-  const totalItems = useCartStore((state) => state.getTotalItems())
-  const { user } = useAuthStore()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const totalItems = useCartStore((state) => state.getTotalItems());
+  const { user } = useUser();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+
+  const handleLogout = async () => {
+    setProfileMenuOpen(false);
+    setMobileMenuOpen(false);
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    await signOut();
+  };
 
   const initials = user?.email
     ? user.email
-        .split('@')[0]
+        .split("@")[0]
         .split(/[-_.]/)
         .map((part) => part[0])
-        .join('')
+        .join("")
         .slice(0, 2)
         .toUpperCase()
-    : 'BC'
+    : "BC";
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-2xl shadow-sm">
@@ -30,16 +39,28 @@ export function Header() {
             <span className="text-lg font-black">🍕</span>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-[0.32em] text-primary/90">Bella Crosta</p>
-            <p className="text-lg font-semibold text-foreground">Handcrafted Pizza Kitchen</p>
+            <p className="text-xs uppercase tracking-[0.32em] text-primary/90">
+              Bella Crosta
+            </p>
+            <p className="text-lg font-semibold text-foreground">
+              Handcrafted Pizza Kitchen
+            </p>
           </div>
         </Link>
 
         <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-foreground/90">
-          <Link href="/" className="transition hover:text-primary">Home</Link>
-          <Link href="/menu" className="transition hover:text-primary">Menu</Link>
-          <Link href="/#featured" className="transition hover:text-primary">Featured</Link>
-          <Link href="/auth/profile" className="transition hover:text-primary">Profile</Link>
+          <Link href="/" className="transition hover:text-primary">
+            Home
+          </Link>
+          <Link href="/menu" className="transition hover:text-primary">
+            Menu
+          </Link>
+          <Link href="/#featured" className="transition hover:text-primary">
+            Featured
+          </Link>
+          <Link href="/auth/profile" className="transition hover:text-primary">
+            Profile
+          </Link>
         </nav>
 
         <div className="flex items-center gap-3">
@@ -73,10 +94,12 @@ export function Header() {
                 <div className="absolute right-0 top-14 z-20 w-56 overflow-hidden rounded-3xl border border-border bg-background shadow-xl shadow-black/10">
                   <div className="px-4 py-3 border-b border-border text-sm text-muted-foreground">
                     Signed in as
-                    <div className="mt-1 font-semibold text-foreground break-all">{user.email}</div>
+                    <div className="mt-1 font-semibold text-foreground break-all">
+                      {user.email}
+                    </div>
                   </div>
                   <div className="grid gap-1 p-3">
-                    {user.role === 'admin' && (
+                    {user.role === "admin" && (
                       <Link
                         href="/admin/dashboard"
                         className="rounded-2xl px-3 py-2 text-sm font-semibold text-primary transition hover:bg-primary/10"
@@ -90,12 +113,12 @@ export function Header() {
                     >
                       Profile
                     </Link>
-                    <a
-                      href="/auth/logout"
-                      className="rounded-2xl px-3 py-2 text-sm text-foreground transition hover:bg-muted text-left block"
+                    <button
+                      onClick={handleLogout}
+                      className="rounded-2xl px-3 py-2 text-sm text-foreground transition hover:bg-muted text-left block w-full"
                     >
                       Logout
-                    </a>
+                    </button>
                   </div>
                 </div>
               )}
@@ -123,7 +146,11 @@ export function Header() {
             onClick={() => setMobileMenuOpen((open) => !open)}
             className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card text-foreground transition hover:border-primary lg:hidden"
           >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileMenuOpen ? (
+              <X className="w-5 h-5" />
+            ) : (
+              <Menu className="w-5 h-5" />
+            )}
           </button>
         </div>
       </div>
@@ -131,33 +158,57 @@ export function Header() {
       {mobileMenuOpen && (
         <div className="border-t border-border bg-card/85 px-4 py-4 backdrop-blur-2xl lg:hidden">
           <nav className="grid gap-2">
-            <Link href="/" className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted">
+            <Link
+              href="/"
+              className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted"
+            >
               Home
             </Link>
-            <Link href="/menu" className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted">
+            <Link
+              href="/menu"
+              className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted"
+            >
               Menu
             </Link>
-            <Link href="/#featured" className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted">
+            <Link
+              href="/#featured"
+              className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted"
+            >
               Featured
             </Link>
-            <Link href="/auth/profile" className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted">
+            <Link
+              href="/auth/profile"
+              className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted"
+            >
               Profile
             </Link>
-            {user?.role === 'admin' && (
-              <Link href="/admin/dashboard" className="rounded-2xl px-4 py-3 text-sm font-semibold text-primary transition hover:bg-primary/10">
+            {user?.role === "admin" && (
+              <Link
+                href="/admin/dashboard"
+                className="rounded-2xl px-4 py-3 text-sm font-semibold text-primary transition hover:bg-primary/10"
+              >
                 Admin Panel
               </Link>
             )}
             {user ? (
-              <a href="/auth/logout" className="block rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted text-left">
+              <button
+                onClick={handleLogout}
+                className="block w-full rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted text-left"
+              >
                 Logout
-              </a>
+              </button>
             ) : (
               <>
-                <Link href="/auth/login" className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted">
+                <Link
+                  href="/auth/login"
+                  className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted"
+                >
                   Sign in
                 </Link>
-                <Link href="/auth/signup" className="rounded-2xl px-4 py-3 bg-primary text-sm font-semibold text-white transition hover:bg-accent">
+                <Link
+                  href="/auth/signup"
+                  className="rounded-2xl px-4 py-3 bg-primary text-sm font-semibold text-white transition hover:bg-accent"
+                >
                   Sign up
                 </Link>
               </>
@@ -166,5 +217,5 @@ export function Header() {
         </div>
       )}
     </header>
-  )
+  );
 }

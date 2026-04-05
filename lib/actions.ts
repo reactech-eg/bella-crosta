@@ -79,11 +79,7 @@ export async function createOrder(
         if (matches) {
           const mimeType = matches[1];
           const base64Data = matches[2];
-          const binaryStr = atob(base64Data);
-          const bytes = new Uint8Array(binaryStr.length);
-          for (let i = 0; i < binaryStr.length; i++) {
-            bytes[i] = binaryStr.charCodeAt(i);
-          }
+          const bytes = Buffer.from(base64Data, "base64");
           const blob = new Blob([bytes], { type: mimeType });
           const ext = mimeType.split("/")[1] ?? "jpg";
           const fileName = `payment-proof-${customerId}-${Date.now()}.${ext}`;
@@ -175,10 +171,7 @@ export async function confirmPayment(orderId: string): Promise<ActionResult> {
       .from("order_items")
       .select(`
         quantity,
-        product_id,
-        product_ingredients:product_id(
-          product_ingredients(raw_material_id, quantity_needed)
-        )
+        product_id
       `)
       .eq("order_id", orderId);
 
@@ -466,11 +459,7 @@ export async function uploadProductImage(
 
     const mimeType = matches[1];
     const b64 = matches[2];
-    const binaryStr = atob(b64);
-    const bytes = new Uint8Array(binaryStr.length);
-    for (let i = 0; i < binaryStr.length; i++) {
-      bytes[i] = binaryStr.charCodeAt(i);
-    }
+    const bytes = Buffer.from(b64, "base64");
     const blob = new Blob([bytes], { type: mimeType });
     const ext = mimeType.split("/")[1] ?? "jpg";
     const path = `products/${fileName}-${Date.now()}.${ext}`;

@@ -6,7 +6,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
 
 export const createClient = async (request: NextRequest) => {
-  let response = NextResponse.next();
+  const response = NextResponse.next();
 
   const { pathname } = request.nextUrl;
 
@@ -59,7 +59,7 @@ export const createClient = async (request: NextRequest) => {
 
   // ── Routes ───────────────────────────────────────────────
   const GUEST_ONLY_ROUTES = ["/auth/login", "/auth/signup"];
-  const ADMIN_ROUTES = ["/admin/dashboard" , "/admin/orders" , "/admin/payments" , "/admin/inventory" , "/admin/customers" , "/admin"];
+  const ADMIN_ROUTES = ["/admin"];
   const PROTECTED_ROUTES = ["/checkout", "/order", "/my-orders"];
 
   // ── Safe redirect helper ───────────────────────────────────

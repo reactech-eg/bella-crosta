@@ -14,7 +14,7 @@ import {
   Loader2,
   ExternalLink,
 } from "lucide-react";
-import { useAuthStore } from "@/store/auth-store";
+import { useUser } from "@/hooks/use-user";
 
 // Visual timeline of order progress
 const ORDER_STEPS = [
@@ -33,11 +33,11 @@ export default function OrderPage() {
   const orderId = params.id as string;
 
   const { currentOrder: order, loadingOrder: loading, fetchOrderById } = useAppStore();
-  const { user, initialized: authInitialized } = useAuthStore()
+  const { user, loading: authLoading } = useUser()
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!authInitialized) return; // Wait until we know auth status
+    if (authLoading) return; // Wait until we know auth status
 
     async function fetchData() {
       try {
@@ -64,7 +64,7 @@ export default function OrderPage() {
     }
 
     fetchData();
-  }, [orderId, fetchOrderById, user, authInitialized]);
+  }, [orderId, fetchOrderById, user, authLoading]);
 
   if (loading) {
     return (
