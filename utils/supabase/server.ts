@@ -1,5 +1,5 @@
 import { getAuthCookiesToClear, SESSION_COOKIE } from "@/lib/auth-constants";
-import { SessionUser, UserRole } from "@/lib/types";
+import { SessionUser } from "@/lib/types";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -73,9 +73,18 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
 
   if (!user) return null;
 
+  // Check admin users table since user.role returned by supabase is just the auth role ("authenticated")
+  const { createAdminClient } = await import("@/utils/supabase/admin-client");
+  const adminDb = createAdminClient();
+  const { data: adminUser } = await adminDb
+    .from("admin_users")
+    .select("id")
+    .eq("id", user.id)
+    .maybeSingle();
+
   return {
     id: user.id,
     email: user.email!,
-    role: user.role as UserRole,
+    role: adminUser ? "admin" : "customer",
   };
 }

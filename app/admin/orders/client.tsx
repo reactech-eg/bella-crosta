@@ -90,10 +90,10 @@ export default function AdminOrdersPage() {
                       "Status",
                       "Payment",
                       "Date",
-                      "",
-                    ].map((h) => (
+                      "Actions",
+                    ].map((h, i) => (
                       <th
-                        key={h}
+                        key={h || i}
                         className="text-left px-4 sm:px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider"
                       >
                         {h}

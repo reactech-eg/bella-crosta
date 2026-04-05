@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition, useCallback } from "react";
+import { useEffect, useState, useTransition, useCallback, Fragment } from "react";
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { useAdminStore } from "@/store/admin-store";
 import type { RawMaterial } from "@/lib/types";
@@ -58,12 +58,19 @@ function StockBadge({ qty, threshold }: { qty: number; threshold: number }) {
 
 interface MaterialFormProps {
   initial?: Partial<RawMaterial>;
-  onSave: (data: Omit<RawMaterial, "id" | "created_at" | "updated_at">) => Promise<void>;
+  onSave: (
+    data: Omit<RawMaterial, "id" | "created_at" | "updated_at">,
+  ) => Promise<void>;
   onCancel: () => void;
   isPending: boolean;
 }
 
-function MaterialForm({ initial, onSave, onCancel, isPending }: MaterialFormProps) {
+function MaterialForm({
+  initial,
+  onSave,
+  onCancel,
+  isPending,
+}: MaterialFormProps) {
   const [form, setForm] = useState({
     ...DEFAULT_FORM,
     ...initial,
@@ -113,7 +120,9 @@ function MaterialForm({ initial, onSave, onCancel, isPending }: MaterialFormProp
             errors.name ? "border-destructive" : "border-border"
           }`}
         />
-        {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
+        {errors.name && (
+          <p className="text-xs text-destructive mt-1">{errors.name}</p>
+        )}
       </div>
 
       {/* Unit */}
@@ -127,7 +136,9 @@ function MaterialForm({ initial, onSave, onCancel, isPending }: MaterialFormProp
           className="w-full px-3.5 py-2.5 rounded-xl bg-input border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         >
           {UNITS.map((u) => (
-            <option key={u} value={u}>{u}</option>
+            <option key={u} value={u}>
+              {u}
+            </option>
           ))}
         </select>
       </div>
@@ -147,7 +158,9 @@ function MaterialForm({ initial, onSave, onCancel, isPending }: MaterialFormProp
             errors.stock_qty ? "border-destructive" : "border-border"
           }`}
         />
-        {errors.stock_qty && <p className="text-xs text-destructive mt-1">{errors.stock_qty}</p>}
+        {errors.stock_qty && (
+          <p className="text-xs text-destructive mt-1">{errors.stock_qty}</p>
+        )}
       </div>
 
       {/* Low Threshold */}
@@ -165,7 +178,11 @@ function MaterialForm({ initial, onSave, onCancel, isPending }: MaterialFormProp
             errors.low_threshold ? "border-destructive" : "border-border"
           }`}
         />
-        {errors.low_threshold && <p className="text-xs text-destructive mt-1">{errors.low_threshold}</p>}
+        {errors.low_threshold && (
+          <p className="text-xs text-destructive mt-1">
+            {errors.low_threshold}
+          </p>
+        )}
       </div>
 
       {/* Cost */}
@@ -183,7 +200,11 @@ function MaterialForm({ initial, onSave, onCancel, isPending }: MaterialFormProp
             errors.cost_per_unit ? "border-destructive" : "border-border"
           }`}
         />
-        {errors.cost_per_unit && <p className="text-xs text-destructive mt-1">{errors.cost_per_unit}</p>}
+        {errors.cost_per_unit && (
+          <p className="text-xs text-destructive mt-1">
+            {errors.cost_per_unit}
+          </p>
+        )}
       </div>
 
       {/* Supplier */}
@@ -257,26 +278,36 @@ export default function AdminRawMaterialsClient() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    msg: string;
+  } | null>(null);
   const [isPending, start] = useTransition();
 
-  useEffect(() => { fetchRawMaterials(); }, [fetchRawMaterials]);
+  useEffect(() => {
+    fetchRawMaterials();
+  }, [fetchRawMaterials]);
 
   const showFeedback = useCallback((type: "success" | "error", msg: string) => {
     setFeedback({ type, msg });
     setTimeout(() => setFeedback(null), 3000);
   }, []);
 
-  const filtered = rawMaterials.filter((m) =>
-    m.name.toLowerCase().includes(search.toLowerCase()) ||
-    m.unit.toLowerCase().includes(search.toLowerCase())
+  const filtered = rawMaterials.filter(
+    (m) =>
+      m.name.toLowerCase().includes(search.toLowerCase()) ||
+      m.unit.toLowerCase().includes(search.toLowerCase()),
   );
 
   const totalMaterials = rawMaterials.length;
-  const lowStockCount = rawMaterials.filter((m) => m.stock_qty <= m.low_threshold && m.stock_qty > 0).length;
+  const lowStockCount = rawMaterials.filter(
+    (m) => m.stock_qty <= m.low_threshold && m.stock_qty > 0,
+  ).length;
   const outOfStockCount = rawMaterials.filter((m) => m.stock_qty === 0).length;
 
-  const handleAdd = async (data: Omit<RawMaterial, "id" | "created_at" | "updated_at">) => {
+  const handleAdd = async (
+    data: Omit<RawMaterial, "id" | "created_at" | "updated_at">,
+  ) => {
     start(async () => {
       const result = await addRawMaterial(data);
       if (result.success) {
@@ -288,7 +319,10 @@ export default function AdminRawMaterialsClient() {
     });
   };
 
-  const handleEdit = async (id: string, data: Omit<RawMaterial, "id" | "created_at" | "updated_at">) => {
+  const handleEdit = async (
+    id: string,
+    data: Omit<RawMaterial, "id" | "created_at" | "updated_at">,
+  ) => {
     start(async () => {
       const result = await editRawMaterial(id, data);
       if (result.success) {
@@ -324,7 +358,10 @@ export default function AdminRawMaterialsClient() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => { setShowAddForm(true); setEditingId(null); }}
+            onClick={() => {
+              setShowAddForm(true);
+              setEditingId(null);
+            }}
             className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:bg-accent transition"
           >
             <Plus className="w-4 h-4" />
@@ -361,11 +398,29 @@ export default function AdminRawMaterialsClient() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           {[
-            { label: "Total Materials", value: totalMaterials, icon: FlaskConical, color: "text-primary" },
-            { label: "Low Stock", value: lowStockCount, icon: TrendingDown, color: "text-yellow-400" },
-            { label: "Out of Stock", value: outOfStockCount, icon: AlertCircle, color: "text-destructive" },
+            {
+              label: "Total Materials",
+              value: totalMaterials,
+              icon: FlaskConical,
+              color: "text-primary",
+            },
+            {
+              label: "Low Stock",
+              value: lowStockCount,
+              icon: TrendingDown,
+              color: "text-yellow-400",
+            },
+            {
+              label: "Out of Stock",
+              value: outOfStockCount,
+              icon: AlertCircle,
+              color: "text-destructive",
+            },
           ].map(({ label, value, icon: Icon, color }) => (
-            <div key={label} className="bg-card border border-border rounded-xl p-4 text-center">
+            <div
+              key={label}
+              className="bg-card border border-border rounded-xl p-4 text-center"
+            >
               <Icon className={`w-5 h-5 mx-auto mb-1.5 ${color} opacity-60`} />
               <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
               <p className={`text-2xl font-bold ${color}`}>{value}</p>
@@ -401,7 +456,10 @@ export default function AdminRawMaterialsClient() {
 
         {/* Mobile add button */}
         <button
-          onClick={() => { setShowAddForm(true); setEditingId(null); }}
+          onClick={() => {
+            setShowAddForm(true);
+            setEditingId(null);
+          }}
           className="sm:hidden w-full mb-4 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:bg-accent transition"
         >
           <Plus className="w-4 h-4" />
@@ -414,7 +472,10 @@ export default function AdminRawMaterialsClient() {
             <div className="p-6 text-center">
               <AlertCircle className="w-8 h-8 text-destructive mx-auto mb-2" />
               <p className="text-sm text-destructive">{errors.rawMaterials}</p>
-              <button onClick={fetchRawMaterials} className="mt-3 text-primary text-sm hover:underline">
+              <button
+                onClick={fetchRawMaterials}
+                className="mt-3 text-primary text-sm hover:underline"
+              >
                 Try again
               </button>
             </div>
@@ -427,141 +488,174 @@ export default function AdminRawMaterialsClient() {
             </div>
           )}
 
-          {!errors.rawMaterials && !loading.rawMaterials && filtered.length === 0 && (
-            <div className="p-12 text-center">
-              <Package2 className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-40" />
-              <p className="text-muted-foreground text-sm">
-                {search ? "No materials match your search." : "No raw materials yet. Add your first one."}
-              </p>
-            </div>
-          )}
+          {!errors.rawMaterials &&
+            !loading.rawMaterials &&
+            filtered.length === 0 && (
+              <div className="p-12 text-center">
+                <Package2 className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-40" />
+                <p className="text-muted-foreground text-sm">
+                  {search
+                    ? "No materials match your search."
+                    : "No raw materials yet. Add your first one."}
+                </p>
+              </div>
+            )}
 
-          {!errors.rawMaterials && !loading.rawMaterials && filtered.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-muted/40">
-                    {["Material", "Unit", "Stock", "Threshold", "Cost/Unit", "Status", "Actions"].map((h) => (
-                      <th
-                        key={h}
-                        className="text-left px-4 sm:px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap"
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((m) => (
-                    <>
-                      <tr
-                        key={m.id}
-                        className="border-b border-border hover:bg-muted/20 transition"
-                      >
-                        <td className="px-4 sm:px-5 py-3">
-                          <p className="font-medium text-foreground">{m.name}</p>
-                          {m.supplier && (
-                            <p className="text-xs text-muted-foreground">{m.supplier}</p>
-                          )}
-                        </td>
-                        <td className="px-4 sm:px-5 py-3 text-muted-foreground">{m.unit}</td>
-                        <td className="px-4 sm:px-5 py-3">
-                          <span
-                            className={`font-semibold ${
-                              m.stock_qty === 0
-                                ? "text-destructive"
-                                : m.stock_qty <= m.low_threshold
-                                ? "text-yellow-400"
-                                : "text-green-400"
-                            }`}
-                          >
-                            {Number(m.stock_qty).toLocaleString()} {m.unit}
-                          </span>
-                        </td>
-                        <td className="px-4 sm:px-5 py-3 text-muted-foreground">
-                          {Number(m.low_threshold).toLocaleString()} {m.unit}
-                        </td>
-                        <td className="px-4 sm:px-5 py-3 text-muted-foreground">
-                          ${Number(m.cost_per_unit).toFixed(4)}
-                        </td>
-                        <td className="px-4 sm:px-5 py-3">
-                          <StockBadge qty={Number(m.stock_qty)} threshold={Number(m.low_threshold)} />
-                        </td>
-                        <td className="px-4 sm:px-5 py-3">
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              onClick={() => {
-                                setEditingId(editingId === m.id ? null : m.id);
-                                setShowAddForm(false);
-                                setDeletingId(null);
-                              }}
-                              className="p-1.5 text-primary hover:bg-primary/10 rounded-lg transition"
-                              title="Edit"
-                            >
-                              <Edit3 className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => setDeletingId(deletingId === m.id ? null : m.id)}
-                              className="p-1.5 text-destructive hover:bg-destructive/10 rounded-lg transition"
-                              title="Delete"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-
-                      {/* Edit form inline */}
-                      {editingId === m.id && (
-                        <tr key={`edit-${m.id}`} className="bg-muted/10 border-b border-primary/20">
-                          <td colSpan={7} className="px-4 sm:px-6 py-4">
-                            <div className="max-w-3xl">
-                              <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                                <Edit3 className="w-3.5 h-3.5 text-primary" />
-                                Editing: {m.name}
-                              </h4>
-                              <MaterialForm
-                                initial={m}
-                                onSave={(data) => handleEdit(m.id, data)}
-                                onCancel={() => setEditingId(null)}
-                                isPending={isPending}
-                              />
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-
-                      {/* Delete confirm inline */}
-                      {deletingId === m.id && (
-                        <tr key={`delete-${m.id}`} className="bg-destructive/5 border-b border-destructive/20">
-                          <td colSpan={7} className="px-4 sm:px-6 py-3">
-                            <div className="flex items-center gap-4">
-                              <p className="text-sm text-foreground">
-                                Delete <strong>{m.name}</strong>? This cannot be undone.
+          {!errors.rawMaterials &&
+            !loading.rawMaterials &&
+            filtered.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/40">
+                      {[
+                        "Material",
+                        "Unit",
+                        "Stock",
+                        "Threshold",
+                        "Cost/Unit",
+                        "Status",
+                        "Actions",
+                      ].map((h) => (
+                        <th
+                          key={h}
+                          className="text-left px-4 sm:px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap"
+                        >
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map((m) => (
+                      <Fragment key={m.id}>
+                        <tr
+                          className="border-b border-border hover:bg-muted/20 transition"
+                        >
+                          <td className="px-4 sm:px-5 py-3">
+                            <p className="font-medium text-foreground">
+                              {m.name}
+                            </p>
+                            {m.supplier && (
+                              <p className="text-xs text-muted-foreground">
+                                {m.supplier}
                               </p>
+                            )}
+                          </td>
+                          <td className="px-4 sm:px-5 py-3 text-muted-foreground">
+                            {m.unit}
+                          </td>
+                          <td className="px-4 sm:px-5 py-3">
+                            <span
+                              className={`font-semibold ${
+                                m.stock_qty === 0
+                                  ? "text-destructive"
+                                  : m.stock_qty <= m.low_threshold
+                                    ? "text-yellow-400"
+                                    : "text-green-400"
+                              }`}
+                            >
+                              {Number(m.stock_qty).toLocaleString()} {m.unit}
+                            </span>
+                          </td>
+                          <td className="px-4 sm:px-5 py-3 text-muted-foreground">
+                            {Number(m.low_threshold).toLocaleString()} {m.unit}
+                          </td>
+                          <td className="px-4 sm:px-5 py-3 text-muted-foreground">
+                            ${Number(m.cost_per_unit).toFixed(4)}
+                          </td>
+                          <td className="px-4 sm:px-5 py-3">
+                            <StockBadge
+                              qty={Number(m.stock_qty)}
+                              threshold={Number(m.low_threshold)}
+                            />
+                          </td>
+                          <td className="px-4 sm:px-5 py-3">
+                            <div className="flex items-center gap-1.5">
                               <button
-                                onClick={() => handleDelete(m.id)}
-                                disabled={isPending}
-                                className="flex items-center gap-1.5 px-4 py-1.5 bg-destructive text-white rounded-lg text-xs font-semibold hover:bg-destructive/90 transition disabled:opacity-50"
+                                onClick={() => {
+                                  setEditingId(
+                                    editingId === m.id ? null : m.id,
+                                  );
+                                  setShowAddForm(false);
+                                  setDeletingId(null);
+                                }}
+                                className="p-1.5 text-primary hover:bg-primary/10 rounded-lg transition"
+                                title="Edit"
                               >
-                                {isPending ? "Deleting…" : "Confirm Delete"}
+                                <Edit3 className="w-3.5 h-3.5" />
                               </button>
                               <button
-                                onClick={() => setDeletingId(null)}
-                                className="px-3 py-1.5 bg-muted text-foreground rounded-lg text-xs hover:bg-muted/80 transition"
+                                onClick={() =>
+                                  setDeletingId(
+                                    deletingId === m.id ? null : m.id,
+                                  )
+                                }
+                                className="p-1.5 text-destructive hover:bg-destructive/10 rounded-lg transition"
+                                title="Delete"
                               >
-                                Cancel
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
                           </td>
                         </tr>
-                      )}
-                    </>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+
+                        {/* Edit form inline */}
+                        {editingId === m.id && (
+                          <tr
+                            className="bg-muted/10 border-b border-primary/20"
+                          >
+                            <td colSpan={7} className="px-4 sm:px-6 py-4">
+                              <div className="max-w-3xl">
+                                <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                                  <Edit3 className="w-3.5 h-3.5 text-primary" />
+                                  Editing: {m.name}
+                                </h4>
+                                <MaterialForm
+                                  initial={m}
+                                  onSave={(data) => handleEdit(m.id, data)}
+                                  onCancel={() => setEditingId(null)}
+                                  isPending={isPending}
+                                />
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+
+                        {/* Delete confirm inline */}
+                        {deletingId === m.id && (
+                          <tr
+                            className="bg-destructive/5 border-b border-destructive/20"
+                          >
+                            <td colSpan={7} className="px-4 sm:px-6 py-3">
+                              <div className="flex items-center gap-4">
+                                <p className="text-sm text-foreground">
+                                  Delete <strong>{m.name}</strong>? This cannot
+                                  be undone.
+                                </p>
+                                <button
+                                  onClick={() => handleDelete(m.id)}
+                                  disabled={isPending}
+                                  className="flex items-center gap-1.5 px-4 py-1.5 bg-destructive text-white rounded-lg text-xs font-semibold hover:bg-destructive/90 transition disabled:opacity-50"
+                                >
+                                  {isPending ? "Deleting…" : "Confirm Delete"}
+                                </button>
+                                <button
+                                  onClick={() => setDeletingId(null)}
+                                  className="px-3 py-1.5 bg-muted text-foreground rounded-lg text-xs hover:bg-muted/80 transition"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
         </div>
       </div>
     </>

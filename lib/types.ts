@@ -117,6 +117,7 @@ export interface SessionUser {
 
 export type AuthResult =
   | { success: true; redirectTo: string }
+  | { success: true; emailSent: true; email: string }
   | { success: false; error: string };
 
 // Form types for admin product management

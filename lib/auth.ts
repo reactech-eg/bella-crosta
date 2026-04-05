@@ -17,21 +17,34 @@ export async function signUp(
 ): Promise<AuthResult> {
   try {
     const sb = await serverClient();
-    const { data, error } = await sb.auth.signUp({ email, password });
+    
+    // Pass emailRedirectTo to support email confirmation links
+    const emailRedirectTo = `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback?next=/`;
+    
+    const { data, error } = await sb.auth.signUp({ 
+      email, 
+      password,
+      options: {
+        emailRedirectTo,
+        data: { full_name: fullName } // store full_name in metadata as a fallback
+      }
+    });
+    
     if (error) return { success: false, error: error.message };
     if (!data.user)
       return { success: false, error: "Account creation failed. Please try again." };
 
-    const { error: profileErr } = await sb
-      .from("customers")
-      .insert({ id: data.user.id, email, full_name: fullName });
-    if (profileErr) console.error("[auth] customers insert error:", profileErr.message);
+    // We no longer manually insert into customers here, a DB trigger will handle it.
+    // If the session exists, the email confirmation is likely off, so we set cookie and log in.
+    if (data.session) {
+      await _setCookie(data.session.access_token);
+      return { success: true, redirectTo: "/" };
+    }
 
-    if (data.session) await _setCookie(data.session.access_token);
-
-    return { success: true, redirectTo: "/" };
-  } catch (e) {
-    console.error("[auth] signUp unexpected error:", e);
+    // If no session, it means email confirmation is required by Supabase.
+    return { success: true, emailSent: true, email: data.user.email ?? email };
+  } catch (_e) {
+    console.error("[auth] signUp unexpected error:", _e);
     return { success: false, error: "Something went wrong. Please try again." };
   }
 }
@@ -125,6 +138,33 @@ export async function handleOAuthCallback(
   } catch (e) {
     console.error("[auth] handleOAuthCallback error:", e);
     return { success: false, error: "OAuth callback failed." };
+  }
+}
+
+// ─── Verify Email Token ───────────────────────────────────────────────────────
+// Called from /auth/callback when type=email
+export async function verifyEmailToken(
+  tokenHash: string,
+  type: import("@supabase/supabase-js").EmailOtpType
+): Promise<{ success: true; role: UserRole } | { success: false; error: string }> {
+  try {
+    const sb = await serverClient();
+    const { data, error } = await sb.auth.verifyOtp({
+      token_hash: tokenHash,
+      type,
+    });
+
+    if (error || !data.session || !data.user)
+      return { success: false, error: error?.message ?? "Email verification failed or expired link." };
+
+    await _setCookie(data.session.access_token);
+    
+    // the trigger handles creating customer profile so we just fetch role
+    const role = await _getUserRole(data.user.id);
+    return { success: true, role };
+  } catch (_e) {
+    console.error("[auth] verifyEmailToken error:", _e);
+    return { success: false, error: "Email verification failed." };
   }
 }
 
