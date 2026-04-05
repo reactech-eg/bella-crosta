@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Header } from "@/components/header";
-import { ProductCard } from "@/components/product-card";
+import ProductCard from "@/components/product-card";
 import { useAppStore } from "@/store/app-store";
 
 export default function MenuPage() {

@@ -30,11 +30,16 @@ export async function getProducts(): Promise<Product[]> {
     .select("*")
     .eq("is_available", true)
     .order("created_at", { ascending: false });
-  if (error) { console.error("getProducts:", error.message); return []; }
+  if (error) {
+    console.error("getProducts:", error.message);
+    return [];
+  }
   return data ?? [];
 }
 
-export async function getProductsByCategory(category: string): Promise<Product[]> {
+export async function getProductsByCategory(
+  category: string,
+): Promise<Product[]> {
   const db = await getDB();
   const { data, error } = await db
     .from("products")
@@ -42,20 +47,10 @@ export async function getProductsByCategory(category: string): Promise<Product[]
     .eq("category", category)
     .eq("is_available", true)
     .order("created_at", { ascending: false });
-  if (error) { console.error("getProductsByCategory:", error.message); return []; }
-  return data ?? [];
-}
-
-export async function getFeaturedProducts(): Promise<Product[]> {
-  const db = await getDB();
-  const { data, error } = await db
-    .from("products")
-    .select("*")
-    .eq("is_featured", true)
-    .eq("is_available", true)
-    .order("created_at", { ascending: false })
-    .limit(6);
-  if (error) { console.error("getFeaturedProducts:", error.message); return []; }
+  if (error) {
+    console.error("getProductsByCategory:", error.message);
+    return [];
+  }
   return data ?? [];
 }
 
@@ -66,7 +61,10 @@ export async function getProductById(id: string): Promise<Product | null> {
     .select(`*, product_ingredients(*, raw_materials(*))`)
     .eq("id", id)
     .single();
-  if (error) { console.error("getProductById:", error.message); return null; }
+  if (error) {
+    console.error("getProductById:", error.message);
+    return null;
+  }
   return data;
 }
 
@@ -77,7 +75,10 @@ export async function getAllProducts(): Promise<Product[]> {
     .from("products")
     .select(`*, product_ingredients(*, raw_materials(*))`)
     .order("created_at", { ascending: false });
-  if (error) { console.error("getAllProducts:", error.message); return []; }
+  if (error) {
+    console.error("getAllProducts:", error.message);
+    return [];
+  }
   return data ?? [];
 }
 
@@ -89,28 +90,41 @@ export async function getAllRawMaterials(): Promise<RawMaterial[]> {
     .from("raw_materials")
     .select("*")
     .order("name", { ascending: true });
-  if (error) { console.error("getAllRawMaterials:", error.message); return []; }
+  if (error) {
+    console.error("getAllRawMaterials:", error.message);
+    return [];
+  }
   return data ?? [];
 }
 
-export async function getRawMaterialById(id: string): Promise<RawMaterial | null> {
+export async function getRawMaterialById(
+  id: string,
+): Promise<RawMaterial | null> {
   const db = getAdminDB();
   const { data, error } = await db
     .from("raw_materials")
     .select("*")
     .eq("id", id)
     .single();
-  if (error) { console.error("getRawMaterialById:", error.message); return null; }
+  if (error) {
+    console.error("getRawMaterialById:", error.message);
+    return null;
+  }
   return data;
 }
 
-export async function getProductIngredients(productId: string): Promise<ProductIngredient[]> {
+export async function getProductIngredients(
+  productId: string,
+): Promise<ProductIngredient[]> {
   const db = getAdminDB();
   const { data, error } = await db
     .from("product_ingredients")
     .select(`*, raw_materials(*)`)
     .eq("product_id", productId);
-  if (error) { console.error("getProductIngredients:", error.message); return []; }
+  if (error) {
+    console.error("getProductIngredients:", error.message);
+    return [];
+  }
   return data ?? [];
 }
 
@@ -125,8 +139,14 @@ function mapOrder(data: Record<string, unknown>): Order {
   return {
     ...(data as unknown as Order),
     order_items: items,
-    payment_method: payment?.payment_method ?? (data.payment_method as Order["payment_method"]) ?? "instapay",
-    payment_proof_url: payment?.proof_image_url ?? (data.payment_proof_url as string | null) ?? null,
+    payment_method:
+      payment?.payment_method ??
+      (data.payment_method as Order["payment_method"]) ??
+      "instapay",
+    payment_proof_url:
+      payment?.proof_image_url ??
+      (data.payment_proof_url as string | null) ??
+      null,
   };
 }
 
@@ -137,7 +157,10 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
     .select(`*, order_items(*), customers(*), payments(*)`)
     .eq("id", orderId)
     .single();
-  if (error) { console.error("getOrderById:", error.message); return null; }
+  if (error) {
+    console.error("getOrderById:", error.message);
+    return null;
+  }
   return mapOrder(data);
 }
 
@@ -148,7 +171,10 @@ export async function getCustomerOrders(customerId: string): Promise<Order[]> {
     .select(`*, order_items(*), payments(*)`)
     .eq("customer_id", customerId)
     .order("created_at", { ascending: false });
-  if (error) { console.error("getCustomerOrders:", error.message); return []; }
+  if (error) {
+    console.error("getCustomerOrders:", error.message);
+    return [];
+  }
   return (data ?? []).map(mapOrder);
 }
 
@@ -158,7 +184,10 @@ export async function getAllOrders(): Promise<Order[]> {
     .from("orders")
     .select(`*, order_items(*), customers(*), payments(*)`)
     .order("created_at", { ascending: false });
-  if (error) { console.error("getAllOrders:", error.message); return []; }
+  if (error) {
+    console.error("getAllOrders:", error.message);
+    return [];
+  }
   return (data ?? []).map(mapOrder);
 }
 
@@ -170,7 +199,10 @@ export async function getAllCustomers(): Promise<Customer[]> {
     .from("customers")
     .select("*")
     .order("created_at", { ascending: false });
-  if (error) { console.error("getAllCustomers:", error.message); return []; }
+  if (error) {
+    console.error("getAllCustomers:", error.message);
+    return [];
+  }
   return data ?? [];
 }
 
@@ -181,7 +213,10 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
     .select("*")
     .eq("id", id)
     .single();
-  if (error) { console.error("getCustomerById:", error.message); return null; }
+  if (error) {
+    console.error("getCustomerById:", error.message);
+    return null;
+  }
   return data;
 }
 
@@ -193,7 +228,10 @@ export async function getLowStockProducts(threshold = 10): Promise<Product[]> {
     .lte("stock_qty", threshold)
     .eq("is_available", true)
     .order("stock_qty", { ascending: true });
-  if (error) { console.error("getLowStockProducts:", error.message); return []; }
+  if (error) {
+    console.error("getLowStockProducts:", error.message);
+    return [];
+  }
   return data ?? [];
 }
 
@@ -203,7 +241,10 @@ export async function getLowStockRawMaterials(): Promise<RawMaterial[]> {
     .from("raw_materials")
     .select("*")
     .order("stock_qty", { ascending: true });
-  if (error) { console.error("getLowStockRawMaterials:", error.message); return []; }
+  if (error) {
+    console.error("getLowStockRawMaterials:", error.message);
+    return [];
+  }
   // Filter where stock_qty <= low_threshold
   return (data ?? []).filter((m) => m.stock_qty <= m.low_threshold);
 }

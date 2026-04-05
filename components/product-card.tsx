@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useCartStore } from "@/store/cart-store";
-import { ShoppingCart, Plus, Minus, Check } from "lucide-react";
+import { ShoppingCart, Plus, Minus, Check, Info } from "lucide-react";
 import Image from "next/image";
+import { cn } from "@/lib/utils"; // Assuming you have a cn helper for tailwind classes
 
 interface ProductCardProps {
   id: string;
@@ -16,7 +17,7 @@ interface ProductCardProps {
   stock_qty: number;
 }
 
-export function ProductCard({
+export default function ProductCard({
   id,
   name,
   description,
@@ -26,14 +27,16 @@ export function ProductCard({
   stock_qty,
   category,
 }: ProductCardProps) {
-  const addItem = useCartStore(state => state.addItem)
+  const addItem = useCartStore((state) => state.addItem);
   const [quantity, setQuantity] = useState(1);
+  const [isAnimate, setIsAnimate] = useState(false);
   const [added, setAdded] = useState(false);
 
-  // stock_qty lives directly on bc_products
   const isOutOfStock = !is_available || stock_qty === 0;
+  const isLowStock = !isOutOfStock && stock_qty <= 10;
 
   const handleAdd = () => {
+    setIsAnimate(true);
     addItem({
       productId: id,
       name,
@@ -42,102 +45,128 @@ export function ProductCard({
       image_url: image_url ?? undefined,
     });
     setAdded(true);
-    setTimeout(() => setAdded(false), 1800);
+
+    // Reset states
+    setTimeout(() => {
+      setAdded(false);
+      setIsAnimate(false);
+    }, 1500);
   };
 
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden group hover:border-border/60 transition-all duration-200">
-      {/* Image */}
-      <div className="relative h-48 overflow-hidden bg-muted">
+    <div className="group relative bg-card border border-border/50 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5 hover:border-primary/20">
+      {/* Image Container */}
+      <div className="relative aspect-4/3 overflow-hidden bg-muted">
         {image_url ? (
           <Image
             src={image_url}
             alt={name}
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-4xl">
-            🍕
+          <div className="w-full h-full flex flex-col items-center justify-center bg-secondary/30">
+            <span className="text-5xl mb-2">🍕</span>
+            <span className="text-xs font-medium text-muted-foreground">
+              No image available
+            </span>
           </div>
         )}
-        {/* Category pill */}
-        <span className="absolute top-3 left-3 px-2.5 py-1 bg-black/60 backdrop-blur-sm rounded-full text-xs font-medium text-white capitalize">
-          {category}
-        </span>
-        {/* Price pill */}
-        <span className="absolute top-3 right-3 px-2.5 py-1 bg-primary rounded-full text-xs font-bold text-primary-foreground">
-          ${Number(price).toFixed(2)}
-        </span>
+
+        {/* Overlay Badges */}
+        <div className="absolute inset-0 p-3 flex flex-col justify-between pointer-events-none">
+          <div className="flex justify-between items-start">
+            <span className="px-3 py-1 bg-background/80 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-wider text-foreground shadow-sm">
+              {category}
+            </span>
+            {isLowStock && (
+              <span className="px-2 py-1 bg-orange-500 text-white text-[10px] font-bold rounded-md animate-pulse">
+                LOW STOCK
+              </span>
+            )}
+          </div>
+
+          <div className="flex justify-end">
+            <span className="px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-bold shadow-lg">
+              ${Number(price).toFixed(2)}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Content */}
-      <div className="p-4">
-        <h3 className="font-semibold text-foreground mb-1.5 leading-snug">
-          {name}
-        </h3>
-
-        {description && (
-          <p className="text-muted-foreground text-xs leading-relaxed line-clamp-2 mb-3">
-            {description}
-          </p>
-        )}
-
-        {/* Stock indicator */}
-        {!isOutOfStock && stock_qty <= 10 && (
-          <p className="text-yellow-400 text-xs mb-3 font-medium">
-            Only {stock_qty} left
-          </p>
-        )}
+      <div className="p-5">
+        <div className="mb-4">
+          <h3 className="font-bold text-lg text-foreground mb-1 group-hover:text-primary transition-colors">
+            {name}
+          </h3>
+          {description && (
+            <p className="text-muted-foreground text-sm line-clamp-2 min-h-10 leading-relaxed">
+              {description}
+            </p>
+          )}
+        </div>
 
         {isOutOfStock ? (
-          <button
-            disabled
-            className="w-full py-2.5 bg-muted text-muted-foreground rounded-xl text-sm font-medium cursor-not-allowed"
-          >
-            Out of Stock
-          </button>
+          <div className="flex items-center justify-center gap-2 w-full py-3 bg-muted/50 text-muted-foreground rounded-xl text-sm font-bold border border-dashed border-border">
+            <Info className="w-4 h-4" />
+            Sold Out
+          </div>
         ) : (
-          <div className="flex items-center gap-2">
-            {/* Qty selector */}
-            <div className="flex items-center border border-border rounded-xl overflow-hidden">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              {/* Quantity Toggle */}
+              <div className="flex items-center bg-secondary/50 rounded-xl p-1 border border-border/50">
+                <button
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  className="p-1.5 rounded-lg hover:bg-background hover:shadow-sm transition-all active:scale-90"
+                  aria-label="Decrease quantity"
+                >
+                  <Minus className="w-3.5 h-3.5" />
+                </button>
+                <span className="w-8 text-center text-sm font-bold">
+                  {quantity}
+                </span>
+                <button
+                  onClick={() => setQuantity((q) => Math.min(stock_qty, q + 1))}
+                  className="p-1.5 rounded-lg hover:bg-background hover:shadow-sm transition-all active:scale-90"
+                  aria-label="Increase quantity"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Add Button */}
               <button
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                className="px-2.5 py-2 hover:bg-muted transition text-foreground"
+                onClick={handleAdd}
+                disabled={isAnimate}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all duration-300 active:scale-95 shadow-md",
+                  added
+                    ? "bg-green-500 text-white shadow-green-200"
+                    : "bg-primary text-primary-foreground hover:shadow-primary/30 hover:brightness-110",
+                )}
               >
-                <Minus className="w-3 h-3" />
-              </button>
-              <span className="px-3 py-2 text-sm font-semibold text-foreground min-w-8 text-center">
-                {quantity}
-              </span>
-              <button
-                onClick={() => setQuantity((q) => Math.min(stock_qty, q + 1))}
-                className="px-2.5 py-2 hover:bg-muted transition text-foreground"
-              >
-                <Plus className="w-3 h-3" />
+                {added ? (
+                  <>
+                    <Check className="w-4 h-4 stroke-3" />
+                    <span>Added!</span>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="w-4 h-4" />
+                    <span>Add to Cart</span>
+                  </>
+                )}
               </button>
             </div>
 
-            {/* Add to cart */}
-            <button
-              onClick={handleAdd}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                added
-                  ? "bg-green-600 text-white"
-                  : "bg-primary text-primary-foreground hover:bg-accent"
-              }`}
-            >
-              {added ? (
-                <>
-                  <Check className="w-4 h-4" />
-                  Added
-                </>
-              ) : (
-                <>
-                  <ShoppingCart className="w-4 h-4" />
-                  Add
-                </>
-              )}
-            </button>
+            {isLowStock && (
+              <p className="text-[11px] text-center font-semibold text-orange-600 uppercase tracking-tight">
+                Hurry! Only {stock_qty} items left in stock
+              </p>
+            )}
           </div>
         )}
       </div>

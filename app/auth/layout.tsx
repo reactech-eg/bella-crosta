@@ -1,9 +1,10 @@
-import Link from 'next/link'
+import { Footer } from "@/components/footer";
+import Link from "next/link";
 
 export default function AuthLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -14,7 +15,7 @@ export default function AuthLayout({
           </div>
           <span
             className="text-lg font-bold text-foreground"
-            style={{ fontFamily: 'var(--font-display)' }}
+            style={{ fontFamily: "var(--font-display)" }}
           >
             Bella Crosta
           </span>
@@ -32,11 +33,7 @@ export default function AuthLayout({
         {children}
       </main>
 
-      <footer className="px-6 py-4 border-t border-border text-center">
-        <p className="text-xs text-muted-foreground">
-          © 2026 Bella Crosta. Authentic Italian craft pizzas.
-        </p>
-      </footer>
+      <Footer />
     </div>
-  )
+  );
 }

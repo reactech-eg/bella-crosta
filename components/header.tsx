@@ -2,149 +2,180 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { useCartStore } from "@/store/cart-store";
-import { ShoppingCart, Menu, X, User, ChevronDown } from "lucide-react";
+import {
+  ShoppingCart,
+  Menu,
+  X,
+  ChevronDown,
+  LogOut,
+  Settings,
+  LayoutDashboard,
+} from "lucide-react";
 import { useUser } from "@/hooks/use-user";
-import { signOut } from "@/lib/auth";
 import { createClient } from "@/utils/supabase/client";
+import { cn } from "@/lib/utils";
+
 export function Header() {
+  const pathname = usePathname();
   const totalItems = useCartStore((state) => state.getTotalItems());
   const { user } = useUser();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [prevPathname, setPrevPathname] = useState(pathname);
+
+  // Close menus on path change directly during render
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
+    setMobileMenuOpen(false);
+    setProfileMenuOpen(false);
+  }
 
   const handleLogout = async () => {
-    setProfileMenuOpen(false);
-    setMobileMenuOpen(false);
     const supabase = createClient();
     await supabase.auth.signOut();
-    await signOut();
+    window.location.href = "/"; // Force refresh to clear all states
   };
 
-  const initials = user?.email
-    ? user.email
-        .split("@")[0]
-        .split(/[-_.]/)
-        .map((part) => part[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : "BC";
+  const navLinks = [
+    { name: "Home", href: "/" },
+    { name: "Menu", href: "/menu" },
+    { name: "Featured", href: "/#featured" },
+  ];
+
+  const initials =
+    user?.email
+      ?.split("@")[0]
+      .split(/[-_.]/)
+      .map((p) => p[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "BC";
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-2xl shadow-sm">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-linear-to-br from-primary to-accent text-white shadow-lg shadow-primary/20">
-            <span className="text-lg font-black">🍕</span>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.32em] text-primary/90">
-              Bella Crosta
-            </p>
-            <p className="text-lg font-semibold text-foreground">
-              Handcrafted Pizza Kitchen
+    <header
+      className={
+        "sticky top-0 py-4 z-50 w-full transition-all duration-300 border-b bg-background/50 backdrop-blur-xl border-transparent shadow-md"
+      }
+    >
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        {/* Logo Section */}
+        <Link href="/" className="group flex items-center gap-3 outline-none">
+          <span className="text-2xl">🍕</span>
+          <div className="hidden sm:block">
+            <p className="text-sm font-bold uppercase tracking-[0.2rem] text-primary leading-none mb-1">
+              Bella
+              <br />
+              <span className="ms-3">Crosta</span>
             </p>
           </div>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-foreground/90">
-          <Link href="/" className="transition hover:text-primary">
-            Home
-          </Link>
-          <Link href="/menu" className="transition hover:text-primary">
-            Menu
-          </Link>
-          <Link href="/#featured" className="transition hover:text-primary">
-            Featured
-          </Link>
-          <Link href="/auth/profile" className="transition hover:text-primary">
-            Profile
-          </Link>
+        {/* Desktop Navigation */}
+        <nav className="hidden lg:flex items-center gap-1">
+          {navLinks.map((link) => (
+            <Link
+              key={link.name}
+              href={link.href}
+              className={cn(
+                "px-4 py-2 text-sm font-semibold rounded-full transition-all",
+                pathname === link.href
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted",
+              )}
+            >
+              {link.name}
+            </Link>
+          ))}
         </nav>
 
-        <div className="flex items-center gap-3">
+        {/* Action Icons */}
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* Cart Trigger */}
           <Link
             href="/cart"
-            className="relative inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card text-foreground transition hover:border-primary hover:text-primary"
+            className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background transition-all hover:border-primary hover:text-primary active:scale-90"
           >
             <ShoppingCart className="w-5 h-5" />
             {totalItems > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
+              <span className="absolute -right-1 -top-1 flex h-5 w-5 animate-in zoom-in-50 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white ring-2 ring-background">
                 {totalItems}
               </span>
             )}
           </Link>
 
+          {/* Auth Section */}
           {user ? (
             <div className="relative">
               <button
-                type="button"
-                onClick={() => setProfileMenuOpen((open) => !open)}
-                className="inline-flex items-center gap-2 rounded-2xl border border-border bg-card px-3 py-2 text-sm font-medium text-foreground transition hover:border-primary"
+                onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                className="flex items-center gap-2 rounded-full border border-border bg-background p-1 pr-3 transition hover:border-primary"
               >
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary/15 text-primary font-semibold">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
                   {initials}
-                </span>
-                <span className="hidden sm:inline">My account</span>
-                <ChevronDown className="w-4 h-4" />
+                </div>
+                <ChevronDown
+                  className={cn(
+                    "w-4 h-4 text-muted-foreground transition-transform",
+                    profileMenuOpen && "rotate-180",
+                  )}
+                />
               </button>
 
               {profileMenuOpen && (
-                <div className="absolute right-0 top-14 z-20 w-56 overflow-hidden rounded-3xl border border-border bg-background shadow-xl shadow-black/10">
-                  <div className="px-4 py-3 border-b border-border text-sm text-muted-foreground">
-                    Signed in as
-                    <div className="mt-1 font-semibold text-foreground break-all">
-                      {user.email}
-                    </div>
+                <div className="absolute right-0 top-12 z-50 w-64 animate-in fade-in slide-in-from-top-2 rounded-2xl border border-border bg-popover p-2 shadow-2xl">
+                  <div className="px-3 py-3 border-b border-border/50">
+                    <p className="text-xs text-muted-foreground">Account</p>
+                    <p className="text-sm font-bold truncate">{user.email}</p>
                   </div>
-                  <div className="grid gap-1 p-3">
+                  <div className="mt-1">
                     {user.role === "admin" && (
                       <Link
                         href="/admin/dashboard"
-                        className="rounded-2xl px-3 py-2 text-sm font-semibold text-primary transition hover:bg-primary/10"
+                        className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-primary font-bold hover:bg-primary/5"
                       >
-                        Admin Panel
+                        <LayoutDashboard className="w-4 h-4" /> Admin Panel
                       </Link>
                     )}
                     <Link
                       href="/auth/profile"
-                      className="rounded-2xl px-3 py-2 text-sm text-foreground transition hover:bg-muted"
+                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm hover:bg-muted transition-colors"
                     >
-                      Profile
+                      <Settings className="w-4 h-4 text-muted-foreground" />{" "}
+                      Profile Settings
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="rounded-2xl px-3 py-2 text-sm text-foreground transition hover:bg-muted text-left block w-full"
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-destructive hover:bg-destructive/5 transition-colors"
                     >
-                      Logout
+                      <LogOut className="w-4 h-4" /> Logout
                     </button>
                   </div>
                 </div>
               )}
             </div>
           ) : (
-            <div className="hidden items-center gap-2 sm:flex">
+            <div className="hidden sm:flex items-center gap-2">
               <Link
                 href="/auth/login"
-                className="inline-flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-2 text-sm text-foreground transition hover:border-primary hover:text-primary"
+                className="text-sm font-bold px-4 py-2 hover:text-primary transition-colors"
               >
-                <User className="w-4 h-4" />
-                Sign in
+                Login
               </Link>
               <Link
                 href="/auth/signup"
-                className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent"
+                className="bg-primary text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95"
               >
-                Sign up
+                Join Now
               </Link>
             </div>
           )}
 
+          {/* Mobile Menu Toggle */}
           <button
-            type="button"
-            onClick={() => setMobileMenuOpen((open) => !open)}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card text-foreground transition hover:border-primary lg:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-muted lg:hidden"
           >
             {mobileMenuOpen ? (
               <X className="w-5 h-5" />
@@ -155,63 +186,34 @@ export function Header() {
         </div>
       </div>
 
+      {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="border-t border-border bg-card/85 px-4 py-4 backdrop-blur-2xl lg:hidden">
-          <nav className="grid gap-2">
-            <Link
-              href="/"
-              className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted"
-            >
-              Home
-            </Link>
-            <Link
-              href="/menu"
-              className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted"
-            >
-              Menu
-            </Link>
-            <Link
-              href="/#featured"
-              className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted"
-            >
-              Featured
-            </Link>
-            <Link
-              href="/auth/profile"
-              className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted"
-            >
-              Profile
-            </Link>
-            {user?.role === "admin" && (
+        <div className="fixed inset-x-0 top-16.25 z-40 h-screen bg-background p-6 animate-in slide-in-from-right lg:hidden">
+          <nav className="flex flex-col gap-4">
+            {navLinks.map((link) => (
               <Link
-                href="/admin/dashboard"
-                className="rounded-2xl px-4 py-3 text-sm font-semibold text-primary transition hover:bg-primary/10"
+                key={link.name}
+                href={link.href}
+                className="text-2xl font-black border-b border-border py-4"
               >
-                Admin Panel
+                {link.name}
               </Link>
-            )}
-            {user ? (
-              <button
-                onClick={handleLogout}
-                className="block w-full rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted text-left"
-              >
-                Logout
-              </button>
-            ) : (
-              <>
+            ))}
+            {!user && (
+              <div className="grid gap-4 pt-4">
                 <Link
                   href="/auth/login"
-                  className="rounded-2xl px-4 py-3 text-sm text-foreground transition hover:bg-muted"
+                  className="w-full py-4 text-center rounded-2xl border border-border font-bold"
                 >
-                  Sign in
+                  Login
                 </Link>
                 <Link
                   href="/auth/signup"
-                  className="rounded-2xl px-4 py-3 bg-primary text-sm font-semibold text-white transition hover:bg-accent"
+                  className="w-full py-4 text-center rounded-2xl bg-primary text-white font-bold"
                 >
-                  Sign up
+                  Sign Up
                 </Link>
-              </>
+              </div>
             )}
           </nav>
         </div>

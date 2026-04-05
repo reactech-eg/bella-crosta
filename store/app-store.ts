@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { Product, Order } from "@/lib/types";
-import { getProducts, getFeaturedProducts, getOrderById } from "@/lib/db";
+import { getProducts, getOrderById } from "@/lib/db";
 
 interface AppStore {
   products: Product[];
@@ -12,7 +12,6 @@ interface AppStore {
   loadingOrder: boolean;
 
   fetchProducts: () => Promise<void>;
-  fetchFeaturedProducts: () => Promise<void>;
   fetchOrderById: (id: string) => Promise<void>;
 }
 
@@ -35,18 +34,6 @@ export const useAppStore = create<AppStore>((set) => ({
       console.error("fetchProducts:", e);
     } finally {
       set({ loadingProducts: false });
-    }
-  },
-
-  fetchFeaturedProducts: async () => {
-    set({ loadingFeatured: true });
-    try {
-      const data = await getFeaturedProducts();
-      set({ featuredProducts: data });
-    } catch (e) {
-      console.error("fetchFeaturedProducts:", e);
-    } finally {
-      set({ loadingFeatured: false });
     }
   },
 
