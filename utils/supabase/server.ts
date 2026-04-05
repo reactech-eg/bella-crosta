@@ -63,15 +63,16 @@ export async function clearSession() {
 }
 
 export async function getCurrentUser(): Promise<SessionUser | null> {
-  const token = await getSessionToken();
-  if (!token) return null;
-
   const sb = await createClient();
-  const {
-    data: { user },
-  } = await sb.auth.getUser(token);
+  let { data: { user } } = await sb.auth.getUser();
 
-  if (!user) return null;
+  if (!user) {
+    const token = await getSessionToken();
+    if (!token) return null;
+    const result = await sb.auth.getUser(token);
+    user = result.data.user;
+    if (!user) return null;
+  }
 
   // Check admin users table since user.role returned by supabase is just the auth role ("authenticated")
   const { createAdminClient } = await import("@/utils/supabase/admin-client");
