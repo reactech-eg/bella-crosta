@@ -16,7 +16,7 @@ export interface Product {
 export interface RawMaterial {
   id: string;
   name: string;
-  unit: string;               // g, kg, ml, l, pcs, etc.
+  unit: string; // g, kg, ml, l, pcs, etc.
   stock_qty: number;
   low_threshold: number;
   cost_per_unit: number;
@@ -70,7 +70,7 @@ export interface Payment {
   id: string;
   order_id: string;
   amount: number;
-  payment_method: "instapay" | "vodafone_cash";
+  payment_method: "instapay" | "vodafone_cash" | "cod";
   bank_account: string | null;
   proof_image_url: string | null;
   proof_uploaded_at: string | null;
@@ -90,7 +90,7 @@ export interface Order {
   total_amount: number;
   delivery_address: string | null;
   delivery_notes: string | null;
-  payment_method: "instapay" | "vodafone_cash";
+  payment_method: "instapay" | "vodafone_cash" | "cod";
   payment_status: "pending" | "uploaded" | "confirmed";
   payment_proof_url: string | null;
   created_at: string;

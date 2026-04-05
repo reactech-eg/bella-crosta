@@ -205,17 +205,32 @@ export async function getSessionToken(): Promise<string | null> {
 
 export async function getCurrentUser(): Promise<SessionUser | null> {
   try {
-    const token = await getSessionToken();
-    if (!token) return null;
-
     const sb = await serverClient();
-    const { data: { user }, error } = await sb.auth.getUser(token);
-    if (error || !user) return null;
+    
+    // First try the built-in SSR cookie method (which handles automatic token refresh)
+    const ssrResult = await sb.auth.getUser();
+    let user = ssrResult.data.user;
+    
+    // Fallback to our custom cookie if the SSR cookie isn't present
+    if (ssrResult.error || !user) {
+      const token = await getSessionToken();
+      if (!token) return null;
+      const result = await sb.auth.getUser(token);
+      user = result.data.user;
+      if (!user) return null;
+    }
 
     const role = await _getUserRole(user.id);
     return { id: user.id, email: user.email!, role };
-  } catch (e) {
-    console.error("[auth] getCurrentUser error:", e);
+  } catch (e: unknown) {
+    // DYNAMIC_SERVER_USAGE is an expected Next.js error during static generation — not a real error
+    const isDynamicServerError =
+      e instanceof Error &&
+      (e as { digest?: string }).digest === "DYNAMIC_SERVER_USAGE";
+
+    if (!isDynamicServerError) {
+      console.error("[auth] getCurrentUser error:", e);
+    }
     return null;
   }
 }

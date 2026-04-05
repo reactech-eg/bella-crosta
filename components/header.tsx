@@ -1,21 +1,23 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
-import { usePathname } from "next/navigation";
-import { useCartStore } from "@/store/cart-store";
-import {
-  ShoppingCart,
-  Menu,
-  X,
-  ChevronDown,
-  LogOut,
-  Settings,
-  LayoutDashboard,
-} from "lucide-react";
-import { createClient } from "@/utils/supabase/client";
-import { cn } from "@/lib/utils";
 import { useUser } from "@/hooks/use-user";
+import { signOut } from "@/lib/auth";
+import { cn } from "@/lib/utils";
+import { useCartStore } from "@/store/cart-store";
+import { createClient } from "@/utils/supabase/client";
+import {
+  ChevronDown,
+  LayoutDashboard,
+  List,
+  LogOut,
+  Menu,
+  ShoppingCart,
+  User,
+  X,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 export function Header() {
   const pathname = usePathname();
@@ -35,6 +37,7 @@ export function Header() {
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
+    await signOut(); // Clear custom session cookie on the server
     window.location.href = "/"; // Force refresh to clear all states
   };
 
@@ -144,11 +147,17 @@ export function Header() {
                       </Link>
                     )}
                     <Link
-                      href="/auth/profile"
+                      href="/orders"
                       className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm hover:bg-muted transition-colors"
                     >
-                      <Settings className="w-4 h-4 text-muted-foreground" />{" "}
-                      Profile Settings
+                      <List className="w-4 h-4 text-muted-foreground" /> My
+                      Orders
+                    </Link>
+                    <Link
+                      href="/profile"
+                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm hover:bg-muted transition-colors"
+                    >
+                      <User className="w-4 h-4 text-muted-foreground" /> Profile
                     </Link>
                     <button
                       onClick={handleLogout}
@@ -209,21 +218,23 @@ export function Header() {
                 <div className="h-14 w-full animate-pulse rounded-2xl bg-muted" />
                 <div className="h-14 w-full animate-pulse rounded-2xl bg-muted" />
               </div>
-            ) : !user && (
-              <div className="grid gap-4 pt-4">
-                <Link
-                  href="/auth/login"
-                  className="w-full py-4 text-center rounded-2xl border border-border font-bold"
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/auth/signup"
-                  className="w-full py-4 text-center rounded-2xl bg-primary text-white font-bold"
-                >
-                  Sign Up
-                </Link>
-              </div>
+            ) : (
+              !user && (
+                <div className="grid gap-4 pt-4">
+                  <Link
+                    href="/auth/login"
+                    className="w-full py-4 text-center rounded-2xl border border-border font-bold"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/auth/signup"
+                    className="w-full py-4 text-center rounded-2xl bg-primary text-white font-bold"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              )
             )}
           </nav>
         </div>

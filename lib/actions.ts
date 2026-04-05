@@ -21,17 +21,28 @@ function adminClient() {
 // ─── Validation ───────────────────────────────────────────────────────────────
 function validateOrderInput(
   customerId: string,
-  items: Array<{ productId: string; quantity: number; price: number; name: string }>,
+  items: Array<{
+    productId: string;
+    quantity: number;
+    price: number;
+    name: string;
+  }>,
   totalAmount: number,
   deliveryAddress: string,
 ): string | null {
   if (!customerId?.trim()) return "Customer ID is required.";
   if (!deliveryAddress?.trim()) return "Delivery address is required.";
-  if (!Number.isFinite(totalAmount) || totalAmount <= 0) return "Invalid order total.";
-  if (!Array.isArray(items) || items.length === 0) return "Order must contain at least one item.";
+  if (!Number.isFinite(totalAmount) || totalAmount <= 0)
+    return "Invalid order total.";
+  if (!Array.isArray(items) || items.length === 0)
+    return "Order must contain at least one item.";
   for (const item of items) {
     if (!item.productId?.trim()) return `Invalid product ID.`;
-    if (!Number.isFinite(item.quantity) || item.quantity < 1 || item.quantity > 999)
+    if (
+      !Number.isFinite(item.quantity) ||
+      item.quantity < 1 ||
+      item.quantity > 999
+    )
       return `Invalid quantity for "${item.name}".`;
     if (!Number.isFinite(item.price) || item.price <= 0)
       return `Invalid price for "${item.name}".`;
@@ -44,14 +55,24 @@ function validateOrderInput(
 //       They are deducted only when admin confirms payment (confirmPayment action).
 export async function createOrder(
   customerId: string,
-  items: Array<{ productId: string; quantity: number; price: number; name: string }>,
+  items: Array<{
+    productId: string;
+    quantity: number;
+    price: number;
+    name: string;
+  }>,
   totalAmount: number,
   deliveryAddress: string,
   deliveryNotes: string,
-  paymentMethod: "instapay" | "vodafone_cash",
-  paymentProofBase64?: string,   // base64 image from client
+  paymentMethod: "instapay" | "vodafone_cash" | "cod",
+  paymentProofBase64?: string, // base64 image from client
 ): Promise<ActionResult<{ orderId: string; orderNumber: string }>> {
-  const validationError = validateOrderInput(customerId, items, totalAmount, deliveryAddress);
+  const validationError = validateOrderInput(
+    customerId,
+    items,
+    totalAmount,
+    deliveryAddress,
+  );
   if (validationError) return { success: false, error: validationError };
 
   try {
@@ -67,7 +88,10 @@ export async function createOrder(
       .gte("created_at", twoMinAgo)
       .maybeSingle();
     if (existing) {
-      return { success: true, data: { orderId: existing.id, orderNumber: existing.order_number } };
+      return {
+        success: true,
+        data: { orderId: existing.id, orderNumber: existing.order_number },
+      };
     }
 
     // Upload payment proof to Supabase Storage if provided
@@ -75,7 +99,9 @@ export async function createOrder(
     if (paymentProofBase64) {
       try {
         // Convert base64 to blob
-        const matches = paymentProofBase64.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
+        const matches = paymentProofBase64.match(
+          /^data:([A-Za-z-+/]+);base64,(.+)$/,
+        );
         if (matches) {
           const mimeType = matches[1];
           const base64Data = matches[2];
@@ -120,7 +146,10 @@ export async function createOrder(
       .single();
 
     if (orderErr || !orderData)
-      return { success: false, error: orderErr?.message ?? "Failed to create order." };
+      return {
+        success: false,
+        error: orderErr?.message ?? "Failed to create order.",
+      };
 
     // Insert line items
     const lineItems = items.map((item) => ({
@@ -137,7 +166,10 @@ export async function createOrder(
     return { success: true, data: { orderId: orderData.id, orderNumber } };
   } catch (e) {
     console.error("createOrder:", e);
-    return { success: false, error: "An unexpected error occurred. Please try again." };
+    return {
+      success: false,
+      error: "An unexpected error occurred. Please try again.",
+    };
   }
 }
 
@@ -148,7 +180,10 @@ export async function updateOrderStatus(
 ): Promise<ActionResult> {
   try {
     const db = adminClient();
-    const { error } = await db.from("orders").update({ status }).eq("id", orderId);
+    const { error } = await db
+      .from("orders")
+      .update({ status })
+      .eq("id", orderId);
     if (error) return { success: false, error: error.message };
     return { success: true };
   } catch (e) {
@@ -169,10 +204,12 @@ export async function confirmPayment(orderId: string): Promise<ActionResult> {
     // 1. Get order items with product ingredients
     const { data: orderItems, error: itemsErr } = await db
       .from("order_items")
-      .select(`
+      .select(
+        `
         quantity,
         product_id
-      `)
+      `,
+      )
       .eq("order_id", orderId);
 
     if (itemsErr) {
@@ -226,7 +263,10 @@ export async function confirmPayment(orderId: string): Promise<ActionResult> {
         .single();
 
       if (fetchErr || !material) {
-        console.error(`confirmPayment — could not fetch material ${materialId}:`, fetchErr);
+        console.error(
+          `confirmPayment — could not fetch material ${materialId}:`,
+          fetchErr,
+        );
         continue;
       }
 
@@ -239,7 +279,10 @@ export async function confirmPayment(orderId: string): Promise<ActionResult> {
         .eq("stock_qty", material.stock_qty); // Optimistic lock
 
       if (deductErr) {
-        console.error(`confirmPayment — failed to deduct ${material.name}:`, deductErr);
+        console.error(
+          `confirmPayment — failed to deduct ${material.name}:`,
+          deductErr,
+        );
         // Retry without optimistic lock as fallback
         await db
           .from("raw_materials")
@@ -259,7 +302,8 @@ export async function confirmPayment(orderId: string): Promise<ActionResult> {
       const { error: auditErr } = await db
         .from("raw_material_deductions")
         .insert(deductionRecords);
-      if (auditErr) console.error("confirmPayment — audit trail insert failed:", auditErr);
+      if (auditErr)
+        console.error("confirmPayment — audit trail insert failed:", auditErr);
     }
 
     return { success: true };
@@ -285,7 +329,10 @@ export async function updateProduct(
 ): Promise<ActionResult> {
   try {
     const db = adminClient();
-    const { error } = await db.from("products").update(updates).eq("id", productId);
+    const { error } = await db
+      .from("products")
+      .update(updates)
+      .eq("id", productId);
     if (error) return { success: false, error: error.message };
     return { success: true };
   } catch (e) {
@@ -317,7 +364,10 @@ export async function createProduct(
       .single();
 
     if (error || !data)
-      return { success: false, error: error?.message ?? "Failed to create product." };
+      return {
+        success: false,
+        error: error?.message ?? "Failed to create product.",
+      };
 
     // Insert ingredients
     if (product.ingredients && product.ingredients.length > 0) {
@@ -330,8 +380,11 @@ export async function createProduct(
         }));
 
       if (ingredients.length > 0) {
-        const { error: ingErr } = await db.from("product_ingredients").insert(ingredients);
-        if (ingErr) console.error("createProduct — ingredients insert:", ingErr);
+        const { error: ingErr } = await db
+          .from("product_ingredients")
+          .insert(ingredients);
+        if (ingErr)
+          console.error("createProduct — ingredients insert:", ingErr);
       }
     }
 
@@ -398,7 +451,11 @@ export async function createRawMaterial(
       .insert(material)
       .select("id")
       .single();
-    if (error || !data) return { success: false, error: error?.message ?? "Failed to create raw material." };
+    if (error || !data)
+      return {
+        success: false,
+        error: error?.message ?? "Failed to create raw material.",
+      };
     return { success: true, data: { id: data.id } };
   } catch (e) {
     console.error("createRawMaterial:", e);
@@ -412,7 +469,10 @@ export async function updateRawMaterial(
 ): Promise<ActionResult> {
   try {
     const db = adminClient();
-    const { error } = await db.from("raw_materials").update(updates).eq("id", id);
+    const { error } = await db
+      .from("raw_materials")
+      .update(updates)
+      .eq("id", id);
     if (error) return { success: false, error: error.message };
     return { success: true };
   } catch (e) {
@@ -434,7 +494,8 @@ export async function deleteRawMaterial(id: string): Promise<ActionResult> {
     if (usages && usages.length > 0) {
       return {
         success: false,
-        error: "This raw material is used in one or more products. Remove it from products first.",
+        error:
+          "This raw material is used in one or more products. Remove it from products first.",
       };
     }
 
@@ -470,7 +531,9 @@ export async function uploadProductImage(
 
     if (error) return { success: false, error: error.message };
 
-    const { data: urlData } = db.storage.from("product-images").getPublicUrl(data.path);
+    const { data: urlData } = db.storage
+      .from("product-images")
+      .getPublicUrl(data.path);
     return { success: true, data: { url: urlData.publicUrl } };
   } catch (e) {
     console.error("uploadProductImage:", e);
