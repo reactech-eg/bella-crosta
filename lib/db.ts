@@ -23,20 +23,6 @@ function getAdminDB() {
 
 // ─── Products ─────────────────────────────────────────────────────────────────
 
-export async function getProducts(): Promise<Product[]> {
-  const db = await getDB();
-  const { data, error } = await db
-    .from("products")
-    .select("*")
-    .eq("is_available", true)
-    .order("created_at", { ascending: false });
-  if (error) {
-    console.error("getProducts:", error.message);
-    return [];
-  }
-  return data ?? [];
-}
-
 export async function getProductsByCategory(
   category: string,
 ): Promise<Product[]> {

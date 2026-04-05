@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useCartStore } from "@/store/cart-store";
 import {
@@ -13,17 +13,29 @@ import {
   Settings,
   LayoutDashboard,
 } from "lucide-react";
-import { useUser } from "@/hooks/use-user";
 import { createClient } from "@/utils/supabase/client";
 import { cn } from "@/lib/utils";
+import { User } from "@supabase/supabase-js";
 
 export function Header() {
   const pathname = usePathname();
   const totalItems = useCartStore((state) => state.getTotalItems());
-  const { user } = useUser();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [prevPathname, setPrevPathname] = useState(pathname);
+  const [user, setUser] = useState<User | null>(null);
+
+  const supabase = createClient();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+  }, [supabase.auth]);
 
   // Close menus on path change directly during render
   if (pathname !== prevPathname) {

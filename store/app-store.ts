@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { Product, Order } from "@/lib/types";
-import { getProducts, getOrderById } from "@/lib/db";
+import { getOrderById } from "@/lib/db";
+import { getProducts } from "@/app/actions/products";
 
 interface AppStore {
   products: Product[];
@@ -11,6 +12,7 @@ interface AppStore {
   loadingFeatured: boolean;
   loadingOrder: boolean;
 
+  setProducts: (products: Product[]) => void;
   fetchProducts: () => Promise<void>;
   fetchOrderById: (id: string) => Promise<void>;
 }
@@ -24,6 +26,8 @@ export const useAppStore = create<AppStore>((set) => ({
   loadingProducts: false,
   loadingFeatured: false,
   loadingOrder: false,
+
+  setProducts: (products: Product[]) => set({ products }),
 
   fetchProducts: async () => {
     set({ loadingProducts: true });

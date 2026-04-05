@@ -3,7 +3,7 @@ import { Header } from "@/components/header";
 import { ArrowRight, Clock, Truck, Shield, Pizza, Star } from "lucide-react";
 import FeaturedSection from "@/components/home/featured-section";
 import { Footer } from "@/components/footer";
-
+import { Button } from "@/components/ui/button";
 export const metadata = {
   title: "Bella Crosta - Premium Pizza Delivery",
   description: "Authentic Italian pizzas delivered fresh to your door",
@@ -50,19 +50,20 @@ export default async function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
-              <Link
-                href="/menu"
-                className="group inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-xl font-bold shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all"
+              <Button asChild size="lg" className="px-8 font-bold h-14">
+                <Link href="/menu">
+                  Order Now
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="px-8 font-bold bg-background/50 backdrop-blur-sm hover:bg-muted/50 transition-all h-14"
               >
-                Order Now
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link
-                href="#featured"
-                className="inline-flex items-center justify-center gap-2 bg-background/50 backdrop-blur-sm border border-border px-8 py-4 rounded-xl font-bold hover:bg-muted/50 transition-all"
-              >
-                View Featured
-              </Link>
+                <Link href="#featured">View Featured</Link>
+              </Button>
             </div>
 
             {/* Ratings Summary */}

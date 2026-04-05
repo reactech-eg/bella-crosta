@@ -5,7 +5,7 @@ import { useCartStore } from "@/store/cart-store";
 import { ShoppingCart, Plus, Minus, Check, Info } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils"; // Assuming you have a cn helper for tailwind classes
-
+import { Button } from "@/components/ui/button";
 interface ProductCardProps {
   id: string;
   name: string;
@@ -81,14 +81,14 @@ export default function ProductCard({
               {category}
             </span>
             {isLowStock && (
-              <span className="px-2 py-1 bg-orange-500 text-white text-[10px] font-bold rounded-md animate-pulse">
+              <span className="px-2 py-1 bg-orange-500 text-white text-[10px] font-bold rounded-full animate-pulse">
                 LOW STOCK
               </span>
             )}
           </div>
 
           <div className="flex justify-end">
-            <span className="px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-bold shadow-lg">
+            <span className="px-3 py-1.5 bg-primary text-primary-foreground rounded-full text-sm font-bold shadow-lg">
               ${Number(price).toFixed(2)}
             </span>
           </div>
@@ -109,7 +109,7 @@ export default function ProductCard({
         </div>
 
         {isOutOfStock ? (
-          <div className="flex items-center justify-center gap-2 w-full py-3 bg-muted/50 text-muted-foreground rounded-xl text-sm font-bold border border-dashed border-border">
+          <div className="flex items-center justify-center gap-2 w-full py-3 bg-muted/50 text-muted-foreground rounded-full text-sm font-bold border border-dashed border-border">
             <Info className="w-4 h-4" />
             Sold Out
           </div>
@@ -117,35 +117,37 @@ export default function ProductCard({
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-3">
               {/* Quantity Toggle */}
-              <div className="flex items-center bg-secondary/50 rounded-xl p-1 border border-border/50">
-                <button
+              <div className="flex items-center bg-secondary/50 rounded-full p-1 border border-border/50">
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="p-1.5 rounded-lg hover:bg-background hover:shadow-sm transition-all active:scale-90"
+                  className="h-7 w-7"
                   aria-label="Decrease quantity"
                 >
                   <Minus className="w-3.5 h-3.5" />
-                </button>
+                </Button>
                 <span className="w-8 text-center text-sm font-bold">
                   {quantity}
                 </span>
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setQuantity((q) => Math.min(stock_qty, q + 1))}
-                  className="p-1.5 rounded-lg hover:bg-background hover:shadow-sm transition-all active:scale-90"
+                  className="h-7 w-7"
                   aria-label="Increase quantity"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                </button>
+                </Button>
               </div>
 
               {/* Add Button */}
-              <button
+              <Button
                 onClick={handleAdd}
                 disabled={isAnimate}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all duration-300 active:scale-95 shadow-md",
-                  added
-                    ? "bg-green-500 text-white shadow-green-200"
-                    : "bg-primary text-primary-foreground hover:shadow-primary/30 hover:brightness-110",
+                  "flex-1 h-11 text-sm font-bold transition-all duration-300 ",
+                  added ? "bg-green-500 text-white" : "",
                 )}
               >
                 {added ? (
@@ -159,7 +161,7 @@ export default function ProductCard({
                     <span>Add to Cart</span>
                   </>
                 )}
-              </button>
+              </Button>
             </div>
 
             {isLowStock && (

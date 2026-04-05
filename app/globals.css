@@ -10,22 +10,31 @@
 
 :root {
   /* Backgrounds — layered depth */
-  --background: #0e0c0a;          /* deepest — page canvas */
-  --card: #161310;                /* surface cards */
-  --popover: #1f1b16;             /* dropdowns / popovers */
-  --secondary: #1f1b16;           /* secondary surfaces */
-  --muted: #1a1714;               /* muted fills */
-  --input: #1a1714;               /* input bg */
+  --background: #0e0c0a;
+  /* deepest — page canvas */
+  --card: #161310;
+  /* surface cards */
+  --popover: #1f1b16;
+  /* dropdowns / popovers */
+  --secondary: #1f1b16;
+  /* secondary surfaces */
+  --muted: #1a1714;
+  /* muted fills */
+  --input: #1a1714;
+  /* input bg */
 
   /* Foreground — warm cream hierarchy */
-  --foreground: #f2e8d9;          /* primary text — warm cream */
+  --foreground: #f2e8d9;
+  /* primary text — warm cream */
   --card-foreground: #f2e8d9;
   --popover-foreground: #f2e8d9;
   --secondary-foreground: #c4b49a;
-  --muted-foreground: #8a7968;    /* hints, placeholders */
+  --muted-foreground: #8a7968;
+  /* hints, placeholders */
 
   /* Brand — burnished terracotta orange */
-  --primary: #e8652a;             /* main CTA, active states */
+  --primary: #e8652a;
+  /* main CTA, active states */
   --primary-foreground: #ffffff;
 
   /* Accent — deeper ember for hover/subtle highlights */
@@ -127,7 +136,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring/50 !scroll-smooth;
   }
 
   body {
@@ -140,13 +149,16 @@
     width: 6px;
     height: 6px;
   }
+
   ::-webkit-scrollbar-track {
     background: var(--background);
   }
+
   ::-webkit-scrollbar-thumb {
     background: rgba(200, 160, 100, 0.20);
     border-radius: 3px;
   }
+
   ::-webkit-scrollbar-thumb:hover {
     background: rgba(232, 101, 42, 0.40);
   }
