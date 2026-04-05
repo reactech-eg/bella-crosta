@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { useCartStore } from "@/store/cart-store";
 import {
@@ -15,27 +15,15 @@ import {
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { cn } from "@/lib/utils";
-import { User } from "@supabase/supabase-js";
+import { useUser } from "@/hooks/use-user";
 
 export function Header() {
   const pathname = usePathname();
   const totalItems = useCartStore((state) => state.getTotalItems());
+  const { user, loading } = useUser();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [prevPathname, setPrevPathname] = useState(pathname);
-  const [user, setUser] = useState<User | null>(null);
-
-  const supabase = createClient();
-
-  useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    getUser();
-  }, [supabase.auth]);
 
   // Close menus on path change directly during render
   if (pathname !== prevPathname) {
@@ -118,7 +106,12 @@ export function Header() {
           </Link>
 
           {/* Auth Section */}
-          {user ? (
+          {loading ? (
+            <div className="flex items-center gap-2">
+              <div className="h-10 w-24 animate-pulse rounded-full bg-muted" />
+              <div className="hidden sm:block h-10 w-24 animate-pulse rounded-full bg-muted" />
+            </div>
+          ) : user ? (
             <div className="relative">
               <button
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
@@ -211,7 +204,12 @@ export function Header() {
                 {link.name}
               </Link>
             ))}
-            {!user && (
+            {loading ? (
+              <div className="grid gap-4 pt-4">
+                <div className="h-14 w-full animate-pulse rounded-2xl bg-muted" />
+                <div className="h-14 w-full animate-pulse rounded-2xl bg-muted" />
+              </div>
+            ) : !user && (
               <div className="grid gap-4 pt-4">
                 <Link
                   href="/auth/login"

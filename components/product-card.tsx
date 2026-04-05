@@ -28,6 +28,12 @@ export default function ProductCard({
   category,
 }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem);
+  const cartItem = useCartStore((state) =>
+    state.items.find((item) => item.productId === id),
+  );
+  const cartQuantity = cartItem?.quantity || 0;
+  const remainingStock = Math.max(0, stock_qty - cartQuantity);
+
   const [quantity, setQuantity] = useState(1);
   const [isAnimate, setIsAnimate] = useState(false);
   const [added, setAdded] = useState(false);
@@ -36,15 +42,20 @@ export default function ProductCard({
   const isLowStock = !isOutOfStock && stock_qty <= 10;
 
   const handleAdd = () => {
+    if (remainingStock === 0) return;
+    
+    const finalQuantity = Math.min(quantity, remainingStock);
+
     setIsAnimate(true);
     addItem({
       productId: id,
       name,
       price,
-      quantity,
+      quantity: finalQuantity,
       image_url: image_url ?? undefined,
     });
     setAdded(true);
+    setQuantity(1);
 
     // Reset states
     setTimeout(() => {
@@ -123,18 +134,20 @@ export default function ProductCard({
                   size="icon"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   className="h-7 w-7"
+                  disabled={remainingStock === 0}
                   aria-label="Decrease quantity"
                 >
                   <Minus className="w-3.5 h-3.5" />
                 </Button>
                 <span className="w-8 text-center text-sm font-bold">
-                  {quantity}
+                  {remainingStock === 0 ? 0 : quantity > remainingStock ? remainingStock : quantity}
                 </span>
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setQuantity((q) => Math.min(stock_qty, q + 1))}
+                  onClick={() => setQuantity((q) => Math.min(remainingStock, q + 1))}
                   className="h-7 w-7"
+                  disabled={remainingStock === 0 || quantity >= remainingStock}
                   aria-label="Increase quantity"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -144,7 +157,7 @@ export default function ProductCard({
               {/* Add Button */}
               <Button
                 onClick={handleAdd}
-                disabled={isAnimate}
+                disabled={isAnimate || remainingStock === 0 || quantity > remainingStock}
                 className={cn(
                   "flex-1 h-11 text-sm font-bold transition-all duration-300 ",
                   added ? "bg-green-500 text-white" : "",
@@ -154,6 +167,11 @@ export default function ProductCard({
                   <>
                     <Check className="w-4 h-4 stroke-3" />
                     <span>Added!</span>
+                  </>
+                ) : remainingStock === 0 ? (
+                  <>
+                    <ShoppingCart className="w-4 h-4" />
+                    <span>Limit Reached</span>
                   </>
                 ) : (
                   <>
