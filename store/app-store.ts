@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { Product, Order } from "@/lib/types";
-import { getProducts, getFeaturedProducts, getOrderById } from "@/lib/db";
+import { getOrderById } from "@/lib/db";
+import { getProducts } from "@/app/actions/products";
 
 interface AppStore {
   products: Product[];
@@ -11,8 +12,8 @@ interface AppStore {
   loadingFeatured: boolean;
   loadingOrder: boolean;
 
+  setProducts: (products: Product[]) => void;
   fetchProducts: () => Promise<void>;
-  fetchFeaturedProducts: () => Promise<void>;
   fetchOrderById: (id: string) => Promise<void>;
 }
 
@@ -26,6 +27,8 @@ export const useAppStore = create<AppStore>((set) => ({
   loadingFeatured: false,
   loadingOrder: false,
 
+  setProducts: (products: Product[]) => set({ products }),
+
   fetchProducts: async () => {
     set({ loadingProducts: true });
     try {
@@ -35,18 +38,6 @@ export const useAppStore = create<AppStore>((set) => ({
       console.error("fetchProducts:", e);
     } finally {
       set({ loadingProducts: false });
-    }
-  },
-
-  fetchFeaturedProducts: async () => {
-    set({ loadingFeatured: true });
-    try {
-      const data = await getFeaturedProducts();
-      set({ featuredProducts: data });
-    } catch (e) {
-      console.error("fetchFeaturedProducts:", e);
-    } finally {
-      set({ loadingFeatured: false });
     }
   },
 

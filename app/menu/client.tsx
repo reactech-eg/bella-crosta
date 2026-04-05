@@ -2,142 +2,213 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Header } from "@/components/header";
-import { ProductCard } from "@/components/product-card";
+import ProductCard from "@/components/product-card";
+import ProductCardSkeleton from "@/components/products/product-card-skeleton";
 import { useAppStore } from "@/store/app-store";
+import { Search, X, UtensilsCrossed } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Product } from "@/lib/types";
 
-export default function MenuPage() {
-  const { products, loadingProducts: loading, fetchProducts } = useAppStore();
+interface MenuClientProps {
+  initialProducts: Product[];
+}
+
+const ITEMS_PER_PAGE = 9;
+
+export default function MenuClient({ initialProducts }: MenuClientProps) {
+  const { products, loadingProducts, setProducts, fetchProducts } =
+    useAppStore();
+
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
+  // Set initial products from server or fetch on client
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    const timer = setTimeout(() => {
+      if (initialProducts.length > 0 && products.length === 0) {
+        setProducts(initialProducts);
+      } else if (initialProducts.length === 0 && products.length === 0) {
+        fetchProducts();
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Build unique categories from product data — no separate categories table needed
+  // Use initialProducts synchronously to avoid hydration delays/loading screens
+  const displayProducts = products.length > 0 ? products : initialProducts;
+
+  // If no products available at all and we are fetching, it's loading
+  const loading =
+    loadingProducts ||
+    (displayProducts.length === 0 && initialProducts.length === 0);
+
   const categories = useMemo(() => {
-    const unique = Array.from(new Set(products.map((p) => p.category)));
-    return unique.sort();
-  }, [products]);
+    const unique = Array.from(new Set(displayProducts.map((p) => p.category)));
+    return ["all", ...unique.sort()];
+  }, [displayProducts]);
 
-  const shown = useMemo(() => {
-    let list = products;
-    if (selectedCategory !== "all") {
-      list = list.filter((p) => p.category === selectedCategory);
-    }
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.description?.toLowerCase().includes(q),
-      );
-    }
-    return list;
-  }, [products, selectedCategory, search]);
+  const filtered = useMemo(() => {
+    return displayProducts.filter((p) => {
+      const matchesCategory =
+        selectedCategory === "all" || p.category === selectedCategory;
+      const matchesSearch =
+        !search.trim() ||
+        p.name.toLowerCase().includes(search.toLowerCase()) ||
+        p.description?.toLowerCase().includes(search.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [displayProducts, selectedCategory, search]);
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filtered.slice(start, start + ITEMS_PER_PAGE);
+  }, [filtered, currentPage]);
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setCurrentPage(1); // Reset page immediately!
+  };
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setCurrentPage(1); // Reset page immediately!
+  };
+  const resetFilters = () => {
+    setSearch("");
+    setSelectedCategory("all");
+    setCurrentPage(1); // Reset page here too!
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Page title */}
-        <div className="mb-8">
-          <p className="text-xs uppercase tracking-widest text-primary mb-2 font-semibold">
-            Our Menu
-          </p>
-          <h1
-            className="text-3xl sm:text-4xl font-bold text-foreground"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            Order Online
-          </h1>
-        </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+          <div className="space-y-1">
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground">
+              Our <span className="text-primary italic">Menu</span>
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              Freshly prepared Italian classics for every craving.
+            </p>
+          </div>
 
-        {/* Search */}
-        <div className="mb-6 relative">
-          <input
-            type="text"
-            placeholder="Search pizzas, appetizers…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full sm:max-w-md px-4 py-2.5 pl-10 border border-border rounded-xl bg-input text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all"
-          />
-          <svg
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          {/* Search Input */}
+          <div className="relative w-full md:w-80 group">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <input
+              type="text"
+              placeholder="Search for a pizza..."
+              value={search}
+              onChange={handleSearchChange}
+              className="w-full pl-10 pr-10 py-3 bg-muted/50 border-border rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
             />
-          </svg>
+            {search && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setSearch("");
+                  setCurrentPage(1);
+                }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground hover:bg-muted p-0"
+              >
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            )}
+          </div>
         </div>
 
-        {/* Category filter — only shows once products are loaded */}
-        {!loading && categories.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-8">
-            <button
-              onClick={() => setSelectedCategory("all")}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition capitalize ${
-                selectedCategory === "all"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
-              }`}
-            >
-              All
-            </button>
+        {/* Category Bar - Sticky on Desktop */}
+        <div className="sticky top-18.25 z-30 bg-background/80 backdrop-blur-md py-4 -mx-4 px-4 mb-8 border-b border-border/40">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar mask-fade-right">
             {categories.map((cat) => (
-              <button
+              <Button
                 key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition capitalize ${
+                variant={selectedCategory === cat ? "default" : "outline"}
+                onClick={() => handleCategoryChange(cat)}
+                className={cn(
+                  "rounded-full font-bold whitespace-nowrap capitalize transition-all px-5 h-10",
                   selectedCategory === cat
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
-                }`}
+                    ? ""
+                    : "text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                )}
               >
-                {cat}
-              </button>
+                {cat === "all" ? "View All" : cat}
+              </Button>
             ))}
+          </div>
+        </div>
+
+        {/* Results Info */}
+        {!loading && (
+          <div className="mb-6 text-sm text-muted-foreground font-medium italic">
+            Showing {paginated.length} of {filtered.length} items
           </div>
         )}
 
-        {/* Products grid */}
+        {/* Main Grid Area */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div
-                key={i}
-                className="h-80 bg-card border border-border rounded-xl animate-pulse"
-              />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[...Array(6)].map((_, i) => (
+              <ProductCardSkeleton key={i} />
             ))}
           </div>
-        ) : shown.length === 0 ? (
-          <div className="py-20 text-center">
-            <p className="text-4xl mb-4">🍕</p>
-            <p className="text-muted-foreground">No items found.</p>
-            {search && (
-              <button
-                onClick={() => setSearch("")}
-                className="mt-3 text-primary text-sm hover:underline"
-              >
-                Clear search
-              </button>
-            )}
+        ) : paginated.length === 0 ? (
+          <div className="py-32 flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-500">
+            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-6">
+              <UtensilsCrossed className="w-10 h-10 text-muted-foreground/50" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">No matches found</h3>
+            <p className="text-muted-foreground max-w-xs mb-8">
+              We couldn&apos;t find anything matching your current filters. Try
+              adjusting your search or category.
+            </p>
+            <Button
+              size="lg"
+              onClick={resetFilters}
+              className="rounded-xl font-bold bg-foreground text-background hover:bg-foreground/90 h-12 px-6"
+            >
+              Reset Filters
+            </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {shown.map((product) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {paginated.map((product) => (
               <ProductCard key={product.id} {...product} />
             ))}
           </div>
         )}
-      </div>
+
+        {/* Pagination Controls */}
+        {!loading && totalPages > 1 && (
+          <div className="flex justify-center gap-2 mt-12">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            <span className="px-4 py-2">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </Button>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

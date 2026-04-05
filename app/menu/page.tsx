@@ -1,5 +1,8 @@
 import MenuClient from "./client";
+import { getProducts } from "@/app/actions/products";
 
-export default function MenuPage() {
-  return <MenuClient />;
+export default async function MenuPage() {
+  const products = await getProducts();
+
+  return <MenuClient initialProducts={products} />;
 }
