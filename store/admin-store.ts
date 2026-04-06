@@ -3,13 +3,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import type { Customer, Product, Order, RawMaterial } from "@/lib/types";
-import {
-  getAllCustomers,
-  getAllProducts,
-  getAllOrders,
-  getOrderById,
-  getAllRawMaterials,
-} from "@/lib/db";
+import { getAllCustomers, getAllRawMaterials } from "@/lib/db";
 import {
   createRawMaterial,
   updateRawMaterial,
@@ -20,6 +14,8 @@ import {
   updateProductIngredients,
 } from "@/lib/actions";
 import type { ProductFormData } from "@/lib/types";
+import { getAllProducts } from "@/app/actions/products";
+import { getAllOrders, getOrderById } from "@/app/actions/orders";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -56,7 +52,9 @@ interface AdminStore {
 
   // Product actions
   fetchProducts: () => Promise<void>;
-  addProduct: (data: ProductFormData) => Promise<{ success: boolean; error?: string }>;
+  addProduct: (
+    data: ProductFormData,
+  ) => Promise<{ success: boolean; error?: string }>;
   editProduct: (
     id: string,
     updates: Partial<Product>,
@@ -77,7 +75,9 @@ interface AdminStore {
     id: string,
     updates: Partial<Omit<RawMaterial, "id" | "created_at" | "updated_at">>,
   ) => Promise<{ success: boolean; error?: string }>;
-  removeRawMaterial: (id: string) => Promise<{ success: boolean; error?: string }>;
+  removeRawMaterial: (
+    id: string,
+  ) => Promise<{ success: boolean; error?: string }>;
 
   // Helpers
   clearError: (key: keyof ErrorState) => void;
@@ -113,10 +113,16 @@ export const useAdminStore = create<AdminStore>()(
 
       // ── Customers ──────────────────────────────────────────────
       fetchCustomers: async () => {
-        set((s) => ({ loading: { ...s.loading, customers: true }, errors: { ...s.errors, customers: null } }));
+        set((s) => ({
+          loading: { ...s.loading, customers: true },
+          errors: { ...s.errors, customers: null },
+        }));
         try {
           const data = await getAllCustomers();
-          set((s) => ({ customers: data, loading: { ...s.loading, customers: false } }));
+          set((s) => ({
+            customers: data,
+            loading: { ...s.loading, customers: false },
+          }));
         } catch {
           set((s) => ({
             loading: { ...s.loading, customers: false },
@@ -127,10 +133,16 @@ export const useAdminStore = create<AdminStore>()(
 
       // ── Products ───────────────────────────────────────────────
       fetchProducts: async () => {
-        set((s) => ({ loading: { ...s.loading, products: true }, errors: { ...s.errors, products: null } }));
+        set((s) => ({
+          loading: { ...s.loading, products: true },
+          errors: { ...s.errors, products: null },
+        }));
         try {
           const data = await getAllProducts();
-          set((s) => ({ products: data, loading: { ...s.loading, products: false } }));
+          set((s) => ({
+            products: data,
+            loading: { ...s.loading, products: false },
+          }));
         } catch {
           set((s) => ({
             loading: { ...s.loading, products: false },
@@ -144,16 +156,27 @@ export const useAdminStore = create<AdminStore>()(
         if (result.success) await get().fetchProducts();
         return result.success
           ? { success: true }
-          : { success: false, error: (result as { success: false; error: string }).error };
+          : {
+              success: false,
+              error: (result as { success: false; error: string }).error,
+            };
       },
 
       editProduct: async (id, updates, ingredients) => {
         const result = await updateProduct(id, updates);
-        if (!result.success) return { success: false, error: (result as { success: false; error: string }).error };
+        if (!result.success)
+          return {
+            success: false,
+            error: (result as { success: false; error: string }).error,
+          };
 
         if (ingredients !== undefined) {
           const ingResult = await updateProductIngredients(id, ingredients);
-          if (!ingResult.success) return { success: false, error: (ingResult as { success: false; error: string }).error };
+          if (!ingResult.success)
+            return {
+              success: false,
+              error: (ingResult as { success: false; error: string }).error,
+            };
         }
 
         await get().fetchProducts();
@@ -171,15 +194,24 @@ export const useAdminStore = create<AdminStore>()(
         }
         return result.success
           ? { success: true }
-          : { success: false, error: (result as { success: false; error: string }).error };
+          : {
+              success: false,
+              error: (result as { success: false; error: string }).error,
+            };
       },
 
       // ── Orders ─────────────────────────────────────────────────
       fetchOrders: async () => {
-        set((s) => ({ loading: { ...s.loading, orders: true }, errors: { ...s.errors, orders: null } }));
+        set((s) => ({
+          loading: { ...s.loading, orders: true },
+          errors: { ...s.errors, orders: null },
+        }));
         try {
           const data = await getAllOrders();
-          set((s) => ({ orders: data, loading: { ...s.loading, orders: false } }));
+          set((s) => ({
+            orders: data,
+            loading: { ...s.loading, orders: false },
+          }));
         } catch {
           set((s) => ({
             loading: { ...s.loading, orders: false },
@@ -215,14 +247,23 @@ export const useAdminStore = create<AdminStore>()(
 
       // ── Raw Materials ──────────────────────────────────────────
       fetchRawMaterials: async () => {
-        set((s) => ({ loading: { ...s.loading, rawMaterials: true }, errors: { ...s.errors, rawMaterials: null } }));
+        set((s) => ({
+          loading: { ...s.loading, rawMaterials: true },
+          errors: { ...s.errors, rawMaterials: null },
+        }));
         try {
           const data = await getAllRawMaterials();
-          set((s) => ({ rawMaterials: data, loading: { ...s.loading, rawMaterials: false } }));
+          set((s) => ({
+            rawMaterials: data,
+            loading: { ...s.loading, rawMaterials: false },
+          }));
         } catch {
           set((s) => ({
             loading: { ...s.loading, rawMaterials: false },
-            errors: { ...s.errors, rawMaterials: "Failed to load raw materials." },
+            errors: {
+              ...s.errors,
+              rawMaterials: "Failed to load raw materials.",
+            },
           }));
         }
       },
@@ -232,7 +273,10 @@ export const useAdminStore = create<AdminStore>()(
         if (result.success) await get().fetchRawMaterials();
         return result.success
           ? { success: true }
-          : { success: false, error: (result as { success: false; error: string }).error };
+          : {
+              success: false,
+              error: (result as { success: false; error: string }).error,
+            };
       },
 
       editRawMaterial: async (id, updates) => {
@@ -246,7 +290,10 @@ export const useAdminStore = create<AdminStore>()(
         }
         return result.success
           ? { success: true }
-          : { success: false, error: (result as { success: false; error: string }).error };
+          : {
+              success: false,
+              error: (result as { success: false; error: string }).error,
+            };
       },
 
       removeRawMaterial: async (id) => {
@@ -258,7 +305,10 @@ export const useAdminStore = create<AdminStore>()(
         }
         return result.success
           ? { success: true }
-          : { success: false, error: (result as { success: false; error: string }).error };
+          : {
+              success: false,
+              error: (result as { success: false; error: string }).error,
+            };
       },
 
       // ── Helpers ────────────────────────────────────────────────

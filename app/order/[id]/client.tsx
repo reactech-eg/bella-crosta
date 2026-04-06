@@ -1,20 +1,14 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { Header } from "@/components/header";
-import { useAppStore } from "@/store/app-store";
 import {
   CheckCircle,
   Clock,
   Package,
   Truck,
   XCircle,
-  Loader2,
   ExternalLink,
 } from "lucide-react";
-import { useUser } from "@/hooks/use-user";
+import { Order } from "@/lib/types";
 
 // Visual timeline of order progress
 const ORDER_STEPS = [
@@ -28,72 +22,7 @@ function getStepIndex(status: string): number {
   return ORDER_STEPS.findIndex((s) => s.key === status);
 }
 
-export default function OrderPage() {
-  const params = useParams();
-  const orderId = params.id as string;
-
-  const { currentOrder: order, loadingOrder: loading, fetchOrderById } = useAppStore();
-  const { user, loading: authLoading } = useUser()
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (authLoading) return; // Wait until we know auth status
-
-    async function fetchData() {
-      try {
-        if (!user) {
-          setError("Please sign in to view your order.");
-          return;
-        }
-
-        await fetchOrderById(orderId);
-        const orderData = useAppStore.getState().currentOrder;
-        
-        if (!orderData) {
-          setError("Order not found.");
-        } else if (
-          user.role !== "admin" &&
-          orderData.customer_id !== user.id
-        ) {
-          setError("You do not have permission to view this order.");
-        }
-      } catch (err) {
-        console.error("fetchData error:", err);
-        setError("Failed to load order.");
-      }
-    }
-
-    fetchData();
-  }, [orderId, fetchOrderById, user, authLoading]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !order) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="max-w-lg mx-auto px-4 py-20 text-center">
-          <p className="text-4xl mb-4">😕</p>
-          <h1 className="text-2xl font-bold text-foreground mb-3">
-            {error || "Order not found"}
-          </h1>
-          <Link href="/" className="text-primary hover:underline">
-            Return to home
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
+export default function OrderPage({ order }: { order: Order }) {
   const isCancelled = order.status === "cancelled";
   const currentStep = isCancelled ? -1 : getStepIndex(order.status);
 

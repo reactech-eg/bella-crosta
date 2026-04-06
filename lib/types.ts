@@ -1,3 +1,5 @@
+export type PaymentMethod = "instapay" | "vodafone_cash" | "cod";
+
 export interface Product {
   id: string;
   name: string;
@@ -70,7 +72,7 @@ export interface Payment {
   id: string;
   order_id: string;
   amount: number;
-  payment_method: "instapay" | "vodafone_cash" | "cod";
+  payment_method: PaymentMethod;
   bank_account: string | null;
   proof_image_url: string | null;
   proof_uploaded_at: string | null;
@@ -90,7 +92,7 @@ export interface Order {
   total_amount: number;
   delivery_address: string | null;
   delivery_notes: string | null;
-  payment_method: "instapay" | "vodafone_cash" | "cod";
+  payment_method: PaymentMethod;
   payment_status: "pending" | "uploaded" | "confirmed";
   payment_proof_url: string | null;
   created_at: string;

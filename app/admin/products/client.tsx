@@ -50,18 +50,6 @@ interface ProductFormState {
   ingredients: IngredientFormItem[];
 }
 
-const EMPTY_FORM: ProductFormState = {
-  name: "",
-  description: "",
-  price: "",
-  category: "pizza",
-  image_url: "",
-  imagePreview: "",
-  is_featured: false,
-  stock_qty: "0",
-  ingredients: [],
-};
-
 // ─── Image Uploader ───────────────────────────────────────────────────────────
 
 function ImageUploader({

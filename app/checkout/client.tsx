@@ -15,11 +15,10 @@ import {
   X,
   MapPin,
   CreditCard,
-  Banknote,
   CheckCircle2,
 } from "lucide-react";
 import Image from "next/image";
-import type { CartItem } from "@/lib/types";
+import type { CartItem, PaymentMethod } from "@/lib/types";
 import { getCurrentUser } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -36,13 +35,11 @@ interface SessionUser {
   role: string;
 }
 
-type PaymentMethod = "instapay" | "vodafone_cash" | "cod";
-
 export default function CheckoutPage() {
   const router = useRouter();
-  const items = useCartStore((state) => state.items);
-  const totalPrice = useCartStore((state) => state.getTotalPrice());
-  const clearCart = useCartStore((state) => state.clearCart);
+  const { items, getTotalPrice, clearCart } = useCartStore();
+
+  const totalPrice = getTotalPrice();
 
   const [user, setUser] = useState<SessionUser | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -280,10 +277,9 @@ export default function CheckoutPage() {
                         {
                           id: "cod",
                           label: "Cash",
-                          icon: <Banknote className="w-4 h-4" />,
                         },
-                        { id: "instapay", label: "Instapay", icon: "💎" },
-                        { id: "vodafone_cash", label: "V-Cash", icon: "📱" },
+                        { id: "instapay", label: "Instapay" },
+                        { id: "vodafone_cash", label: "V-Cash" },
                       ].map((method) => (
                         <Button
                           key={method.id}
@@ -300,7 +296,6 @@ export default function CheckoutPage() {
                               : "border-border hover:border-primary/40 text-muted-foreground",
                           )}
                         >
-                          <span className="text-xl">{method.icon}</span>
                           <span>{method.label}</span>
                         </Button>
                       ))}
@@ -453,7 +448,7 @@ function OrderSummaryCard({
           </div>
           <div className="flex justify-between text-sm text-muted-foreground font-medium">
             <span>Delivery</span>
-            <span className="text-green-600 font-bold uppercase text-[10px] tracking-widest bg-green-50 px-2 py-0.5 rounded-full">
+            <span className="text-foreground font-bold uppercase text-[10px] tracking-widest bg-primary px-2 py-0.5 rounded-full">
               Free
             </span>
           </div>

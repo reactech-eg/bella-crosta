@@ -1,4 +1,3 @@
-import { getAuthCookiesToClear, SESSION_COOKIE } from "@/lib/auth-constants";
 import { SessionUser } from "@/lib/types";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
@@ -29,50 +28,13 @@ export const createClient = async () => {
   });
 };
 
-export async function setSession(token: string) {
-  const jar = await cookies();
-  jar.set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
-  });
-}
-
-export async function getSessionToken() {
-  const jar = await cookies();
-  return jar.get(SESSION_COOKIE)?.value ?? null;
-}
-
-export async function clearSession() {
-  const jar = await cookies();
-  const secure = process.env.NODE_ENV === "production";
-
-  for (const name of getAuthCookiesToClear()) {
-    jar.set(name, "", {
-      httpOnly: true,
-      secure,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 0,
-      expires: new Date(0),
-    });
-    jar.delete(name);
-  }
-}
-
 export async function getCurrentUser(): Promise<SessionUser | null> {
-  const sb = await createClient();
-  let { data: { user } } = await sb.auth.getUser();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!user) {
-    const token = await getSessionToken();
-    if (!token) return null;
-    const result = await sb.auth.getUser(token);
-    user = result.data.user;
-    if (!user) return null;
-  }
+  if (!user) return null;
 
   // Check admin users table since user.role returned by supabase is just the auth role ("authenticated")
   const { createAdminClient } = await import("@/utils/supabase/admin-client");

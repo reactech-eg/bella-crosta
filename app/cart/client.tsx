@@ -15,11 +15,9 @@ import {
 import Image from "next/image";
 
 export default function CartPage() {
-  const items = useCartStore((state) => state.items);
-  const removeItem = useCartStore((state) => state.removeItem);
-  const updateQuantity = useCartStore((state) => state.updateQuantity);
-  const totalPrice = useCartStore((state) => state.getTotalPrice());
-  const clearCart = useCartStore((state) => state.clearCart);
+  const { items, clearCart, removeItem, updateQuantity, getTotalPrice } =
+    useCartStore();
+  const totalPrice = getTotalPrice();
 
   if (items.length === 0) {
     return (

@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AdminSidebar } from "@/components/admin-sidebar";
-import { useAdminStore } from "@/store/admin-store";
 import { Menu } from "lucide-react";
 import Link from "next/link";
+import { Order } from "@/lib/types";
 
 const FILTERS = [
   { v: "all", l: "All Orders" },
@@ -15,14 +15,9 @@ const FILTERS = [
   { v: "cancelled", l: "Cancelled" },
 ];
 
-export default function AdminOrdersPage() {
-  const { orders, loading, fetchOrders } = useAdminStore();
+export default function AdminOrdersPage({ orders }: { orders: Order[] }) {
   const [mobile, setMobile] = useState(false);
   const [filter, setFilter] = useState("all");
-
-  useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
 
   const shown =
     filter === "all" ? orders : orders.filter((o) => o.status === filter);
@@ -70,11 +65,7 @@ export default function AdminOrdersPage() {
         </div>
 
         <div className="bg-card border border-border rounded-xl overflow-hidden">
-          {loading.orders ? (
-            <div className="p-8 text-center text-muted-foreground text-sm">
-              Loading…
-            </div>
-          ) : shown.length === 0 ? (
+          {shown.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground text-sm">
               No orders found.
             </div>
