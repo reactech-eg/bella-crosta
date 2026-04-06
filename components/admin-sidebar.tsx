@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { signOut } from "@/lib/auth";
 import { createClient } from "@/utils/supabase/client";
 import {
   LayoutDashboard,
@@ -15,6 +14,7 @@ import {
   X,
   FlaskConical,
   ChefHat,
+  Loader2,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -32,7 +32,6 @@ export function AdminSidebar({ mobile = false, onClose }: AdminSidebarProps) {
     try {
       const supabase = createClient();
       await supabase.auth.signOut();
-      await signOut();
     } catch {
       setSigningOut(false);
     }
@@ -44,7 +43,11 @@ export function AdminSidebar({ mobile = false, onClose }: AdminSidebarProps) {
     { href: "/admin/payments", icon: CreditCard, label: "Payments" },
     { href: "/admin/products", icon: ChefHat, label: "Products" },
     { href: "/admin/inventory", icon: Package, label: "Inventory" },
-    { href: "/admin/raw-materials", icon: FlaskConical, label: "Raw Materials" },
+    {
+      href: "/admin/raw-materials",
+      icon: FlaskConical,
+      label: "Raw Materials",
+    },
     { href: "/admin/customers", icon: Users, label: "Customers" },
   ];
 
@@ -79,7 +82,10 @@ export function AdminSidebar({ mobile = false, onClose }: AdminSidebarProps) {
       </div>
 
       {/* Nav links */}
-      <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto" aria-label="Admin navigation">
+      <nav
+        className="flex-1 px-3 space-y-0.5 overflow-y-auto"
+        aria-label="Admin navigation"
+      >
         {nav.map(({ href, icon: Icon, label }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
@@ -109,9 +115,12 @@ export function AdminSidebar({ mobile = false, onClose }: AdminSidebarProps) {
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Sign out"
         >
-          <LogOut
-            className={`w-4 h-4 shrink-0 ${signingOut ? "animate-spin opacity-60" : ""}`}
-          />
+          {signingOut ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <LogOut className="w-4 h-4" />
+          )}
+
           {signingOut ? "Signing out…" : "Sign out"}
         </button>
       </div>

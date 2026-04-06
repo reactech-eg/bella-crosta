@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface OrdersClientProps {
-  initialOrders: Order[];
+  orders: Order[];
 }
 
 const STATUS_CONFIG = {
@@ -59,13 +59,15 @@ const STATUS_CONFIG = {
   },
 };
 
-export default function OrdersClient({ initialOrders }: OrdersClientProps) {
+export default function OrdersClient({ orders }: OrdersClientProps) {
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "status">("newest");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "status">(
+    "newest",
+  );
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
   const sorted = useMemo(() => {
-    let result = [...initialOrders];
+    let result = [...orders];
 
     // Filter by status
     if (filterStatus !== "all") {
@@ -84,15 +86,20 @@ export default function OrdersClient({ initialOrders }: OrdersClientProps) {
           new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
       );
     } else if (sortBy === "status") {
-      const statusOrder = ["pending", "confirmed", "preparing", "delivered", "cancelled"];
+      const statusOrder = [
+        "pending",
+        "confirmed",
+        "preparing",
+        "delivered",
+        "cancelled",
+      ];
       result.sort(
-        (a, b) =>
-          statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status),
+        (a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status),
       );
     }
 
     return result;
-  }, [initialOrders, sortBy, filterStatus]);
+  }, [orders, sortBy, filterStatus]);
 
   const statuses = [
     "all",
@@ -103,7 +110,7 @@ export default function OrdersClient({ initialOrders }: OrdersClientProps) {
     "cancelled",
   ] as const;
 
-  if (initialOrders.length === 0) {
+  if (orders.length === 0) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -194,14 +201,16 @@ export default function OrdersClient({ initialOrders }: OrdersClientProps) {
 
         {/* Results Info */}
         <div className="mb-6 text-sm text-muted-foreground font-medium italic">
-          Showing {sorted.length} of {initialOrders.length} order
-          {initialOrders.length !== 1 ? "s" : ""}
+          Showing {sorted.length} of {orders.length} order
+          {orders.length !== 1 ? "s" : ""}
         </div>
 
         {/* Orders List */}
         {sorted.length === 0 ? (
           <div className="py-12 text-center">
-            <p className="text-muted-foreground">No orders found with current filters.</p>
+            <p className="text-muted-foreground">
+              No orders found with current filters.
+            </p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -251,10 +260,7 @@ export default function OrdersClient({ initialOrders }: OrdersClientProps) {
                           )}
                         >
                           <StatusIcon
-                            className={cn(
-                              "w-6 h-6",
-                              statusConfig.color,
-                            )}
+                            className={cn("w-6 h-6", statusConfig.color)}
                           />
                         </div>
 
@@ -329,7 +335,8 @@ export default function OrdersClient({ initialOrders }: OrdersClientProps) {
                                   {item.product_name}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  Qty: {item.quantity} × ${item.unit_price.toFixed(2)}
+                                  Qty: {item.quantity} × $
+                                  {item.unit_price.toFixed(2)}
                                 </p>
                               </div>
                               <p className="font-bold text-foreground whitespace-nowrap">

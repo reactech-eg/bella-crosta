@@ -101,22 +101,6 @@ export async function verifyEmailToken(
   }
 }
 
-// ─── Sign Out ─────────────────────────────────────────────────────────────────
-
-export async function signOut(): Promise<void> {
-  try {
-    const supabase = await serverClient();
-    await supabase.auth.signOut();
-  } catch (e) {
-    console.error(
-      "[auth] signOut — Supabase invalidation failed (non-fatal):",
-      e,
-    );
-  }
-
-  redirect("/");
-}
-
 // ─── Get current user ────────────────────────────────────────────────────────
 
 export async function getCurrentUser(): Promise<SessionUser | null> {

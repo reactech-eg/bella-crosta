@@ -1,10 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { signOut } from "@/lib/auth";
 import { updateProfile } from "@/app/actions/profile";
 import type { UpdateProfileInput } from "@/app/actions/profile";
-import { useRouter } from "next/navigation";
 import { Header } from "@/components/header";
 import {
   User,
@@ -24,16 +22,13 @@ import {
 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { useUser } from "@/hooks/use-user";
 import type { Customer } from "@/lib/types";
 
 interface Props {
-  customer: Customer | null;
+  customer: Customer;
 }
 
 export default function ProfileClient({ customer: initialCustomer }: Props) {
-  const { user, loading } = useUser();
-  const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
 
   // ── Edit state ───────────────────────────────────────────────────────────────
@@ -93,30 +88,12 @@ export default function ProfileClient({ customer: initialCustomer }: Props) {
     try {
       const supabase = createClient();
       await supabase.auth.signOut();
-      await signOut();
     } catch {
       setSigningOut(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-          <ProfileSkeleton />
-        </main>
-      </div>
-    );
-  }
-
-  if (!user) {
-    if (typeof window !== "undefined") router.push("/auth/login");
-    return null;
-  }
-
-  const displayName =
-    customer?.full_name || user.email?.split("@")[0] || "User";
+  const displayName = customer?.full_name || "User";
   const initials = displayName
     .split(" ")
     .map((w: string) => w[0])
@@ -160,11 +137,11 @@ export default function ProfileClient({ customer: initialCustomer }: Props) {
                     {displayName}
                   </h2>
                   <p className="text-sm text-muted-foreground truncate">
-                    {user.email}
+                    {customer?.email}
                   </p>
                   <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary uppercase tracking-wider">
                     <ShieldCheck className="w-3 h-3" />
-                    {user.role || "Standard"} Member
+                    Customer Member
                   </div>
                 </div>
               </div>
@@ -303,7 +280,7 @@ export default function ProfileClient({ customer: initialCustomer }: Props) {
                   {[
                     {
                       label: "Email Address",
-                      value: user.email,
+                      value: customer?.email || "—",
                       icon: (
                         <MailIcon className="w-4 h-4 text-muted-foreground" />
                       ),
@@ -406,37 +383,6 @@ export default function ProfileClient({ customer: initialCustomer }: Props) {
           </div>
         </div>
       </main>
-    </div>
-  );
-}
-
-function ProfileSkeleton() {
-  return (
-    <div className="animate-pulse">
-      <div className="h-4 w-32 bg-muted rounded mb-8" />
-      <div className="grid gap-8 lg:grid-cols-12">
-        <div className="lg:col-span-4 space-y-6">
-          <div className="rounded-3xl border border-border bg-card overflow-hidden">
-            <div className="h-24 bg-muted" />
-            <div className="p-6 pt-14 relative">
-              <div className="absolute -top-12 left-6 h-24 w-24 rounded-3xl bg-muted border-4 border-card" />
-              <div className="h-6 w-3/4 bg-muted rounded mb-2" />
-              <div className="h-4 w-1/2 bg-muted rounded" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="h-20 bg-muted rounded-2xl" />
-            <div className="h-20 bg-muted rounded-2xl" />
-          </div>
-        </div>
-        <div className="lg:col-span-8 space-y-6">
-          <div className="h-80 bg-muted rounded-3xl" />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="h-20 bg-muted rounded-2xl" />
-            <div className="h-20 bg-muted rounded-2xl" />
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

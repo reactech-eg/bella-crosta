@@ -1,7 +1,6 @@
 "use client";
 
 import { useUser } from "@/hooks/use-user";
-import { signOut } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import { createClient } from "@/utils/supabase/client";
@@ -9,6 +8,7 @@ import {
   ChevronDown,
   LayoutDashboard,
   List,
+  Loader2,
   LogOut,
   Menu,
   ShoppingCart,
@@ -26,6 +26,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [prevPathname, setPrevPathname] = useState(pathname);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   // Close menus on path change directly during render
   if (pathname !== prevPathname) {
@@ -35,10 +36,15 @@ export function Header() {
   }
 
   const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    await signOut(); // Clear custom session cookie on the server
-    window.location.href = "/"; // Force refresh to clear all states
+    setIsSigningOut(true);
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsSigningOut(false);
+    }
   };
 
   const navLinks = [
@@ -161,9 +167,15 @@ export function Header() {
                     </Link>
                     <button
                       onClick={handleLogout}
+                      disabled={isSigningOut}
                       className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-destructive hover:bg-destructive/5 transition-colors"
                     >
-                      <LogOut className="w-4 h-4" /> Logout
+                      {isSigningOut ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <LogOut className="w-4 h-4" />
+                      )}
+                      <span>{isSigningOut ? "Signing out..." : "Logout"}</span>
                     </button>
                   </div>
                 </div>
@@ -220,7 +232,7 @@ export function Header() {
               </div>
             ) : (
               !user && (
-                <div className="grid gap-4 pt-4">
+                <div className="sm:hidden grid gap-4 pt-4">
                   <Link
                     href="/auth/login"
                     className="w-full py-4 text-center rounded-2xl border border-border font-bold"

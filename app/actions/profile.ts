@@ -5,29 +5,32 @@ import { getCurrentUser } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { Customer } from "@/lib/types";
+import { cache } from "react";
 
 // ─── Get Profile ──────────────────────────────────────────────────────────────
 
-export async function getProfile(): Promise<{
-  customer: Customer;
-} | null> {
-  const user = await getCurrentUser();
-  if (!user) redirect("/auth/login");
+export const getProfile = cache(
+  async (): Promise<{
+    customer: Customer;
+  } | null> => {
+    const user = await getCurrentUser();
+    if (!user) redirect("/auth/login");
 
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("customers")
-    .select("*")
-    .eq("id", user.id)
-    .single();
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("customers")
+      .select("*")
+      .eq("id", user.id)
+      .single();
 
-  if (error) {
-    console.error("[profile] getProfile error:", error.message);
-    return null;
-  }
+    if (error) {
+      console.error("[profile] getProfile error:", error.message);
+      return null;
+    }
 
-  return { customer: data as Customer };
-}
+    return { customer: data as Customer };
+  },
+);
 
 // ─── Update Profile ───────────────────────────────────────────────────────────
 
@@ -58,7 +61,10 @@ export async function updateProfile(
 
     if (error) {
       console.error("[profile] updateProfile error:", error.message);
-      return { success: false, error: "Failed to update profile. Please try again." };
+      return {
+        success: false,
+        error: "Failed to update profile. Please try again.",
+      };
     }
 
     revalidatePath("/profile");

@@ -1,57 +1,31 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Header } from "@/components/header";
 import ProductCard from "@/components/product-card";
-import ProductCardSkeleton from "@/components/products/product-card-skeleton";
-import { useAppStore } from "@/store/app-store";
 import { Search, X, UtensilsCrossed } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Product } from "@/lib/types";
 
 interface MenuClientProps {
-  initialProducts: Product[];
+  products: Product[];
 }
 
 const ITEMS_PER_PAGE = 9;
 
-export default function MenuClient({ initialProducts }: MenuClientProps) {
-  const { products, loadingProducts, setProducts, fetchProducts } =
-    useAppStore();
-
+export default function MenuClient({ products }: MenuClientProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Set initial products from server or fetch on client
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (initialProducts.length > 0 && products.length === 0) {
-        setProducts(initialProducts);
-      } else if (initialProducts.length === 0 && products.length === 0) {
-        fetchProducts();
-      }
-    }, 0);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Use initialProducts synchronously to avoid hydration delays/loading screens
-  const displayProducts = products.length > 0 ? products : initialProducts;
-
-  // If no products available at all and we are fetching, it's loading
-  const loading =
-    loadingProducts ||
-    (displayProducts.length === 0 && initialProducts.length === 0);
-
   const categories = useMemo(() => {
-    const unique = Array.from(new Set(displayProducts.map((p) => p.category)));
+    const unique = Array.from(new Set(products.map((p) => p.category)));
     return ["all", ...unique.sort()];
-  }, [displayProducts]);
+  }, [products]);
 
   const filtered = useMemo(() => {
-    return displayProducts.filter((p) => {
+    return products.filter((p) => {
       const matchesCategory =
         selectedCategory === "all" || p.category === selectedCategory;
       const matchesSearch =
@@ -60,7 +34,7 @@ export default function MenuClient({ initialProducts }: MenuClientProps) {
         p.description?.toLowerCase().includes(search.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [displayProducts, selectedCategory, search]);
+  }, [products, selectedCategory, search]);
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
 
@@ -146,21 +120,8 @@ export default function MenuClient({ initialProducts }: MenuClientProps) {
           </div>
         </div>
 
-        {/* Results Info */}
-        {!loading && (
-          <div className="mb-6 text-sm text-muted-foreground font-medium italic">
-            Showing {paginated.length} of {filtered.length} items
-          </div>
-        )}
-
         {/* Main Grid Area */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[...Array(6)].map((_, i) => (
-              <ProductCardSkeleton key={i} />
-            ))}
-          </div>
-        ) : paginated.length === 0 ? (
+        {paginated.length === 0 ? (
           <div className="py-32 flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-500">
             <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-6">
               <UtensilsCrossed className="w-10 h-10 text-muted-foreground/50" />
@@ -187,7 +148,7 @@ export default function MenuClient({ initialProducts }: MenuClientProps) {
         )}
 
         {/* Pagination Controls */}
-        {!loading && totalPages > 1 && (
+        {totalPages > 1 && (
           <div className="flex justify-center gap-2 mt-12">
             <Button
               variant="outline"
