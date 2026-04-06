@@ -1,20 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
-import { SESSION_COOKIE, LEGACY_SESSION_COOKIE } from "@/lib/auth-constants";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
 
 export const createClient = async (request: NextRequest) => {
-  const response = NextResponse.next();
+  // Create an unmodified response
+  let supabaseResponse = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
 
   const { pathname } = request.nextUrl;
-
-  // ── Get token ───────────────────────────────────────────────
-  const token =
-    request.cookies.get(SESSION_COOKIE)?.value ??
-    request.cookies.get(LEGACY_SESSION_COOKIE)?.value ??
-    null;
 
   let userId: string | null = null;
   let isAdmin = false;
@@ -22,8 +20,20 @@ export const createClient = async (request: NextRequest) => {
   // ── Create Supabase client (SAFE) ───────────────────────────
   const supabase = createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
-      getAll: () => request.cookies.getAll(),
-      setAll: () => {},
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) =>
+          request.cookies.set(name, value),
+        );
+        supabaseResponse = NextResponse.next({
+          request,
+        });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          supabaseResponse.cookies.set(name, value, options),
+        );
+      },
     },
     auth: {
       persistSession: false,
@@ -32,27 +42,25 @@ export const createClient = async (request: NextRequest) => {
   });
 
   // ── Get user ───────────────────────────────────────────────
-  if (token) {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser(token);
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-      if (user) {
-        userId = user.id;
+    if (user) {
+      userId = user.id;
 
-        // check admin
-        const { data } = await supabase
-          .from("admin_users")
-          .select("id")
-          .eq("id", user.id)
-          .maybeSingle();
+      // check admin
+      const { data } = await supabase
+        .from("admin_users")
+        .select("id")
+        .eq("id", user.id)
+        .maybeSingle();
 
-        isAdmin = !!data;
-      }
-    } catch {
-      // ignore errors
+      isAdmin = !!data;
     }
+  } catch {
+    // ignore errors
   }
 
   const isLoggedIn = !!userId;
@@ -60,11 +68,11 @@ export const createClient = async (request: NextRequest) => {
   // ── Routes ───────────────────────────────────────────────
   const GUEST_ONLY_ROUTES = ["/auth/login", "/auth/signup"];
   const ADMIN_ROUTES = ["/admin"];
-  const PROTECTED_ROUTES = ["/checkout", "/order", "/my-orders"];
+  const PROTECTED_ROUTES = ["/checkout", "/order", "/orders", "/profile"];
 
   // ── Safe redirect helper ───────────────────────────────────
   const safeRedirect = (to: string) => {
-    if (pathname === to) return response; // ❌ يمنع loop
+    if (pathname === to) return supabaseResponse; // ❌ يمنع loop
     return NextResponse.redirect(new URL(to, request.url));
   };
 
@@ -73,7 +81,7 @@ export const createClient = async (request: NextRequest) => {
     if (isLoggedIn) {
       return safeRedirect(isAdmin ? "/admin/dashboard" : "/");
     }
-    return response;
+    return supabaseResponse;
   }
 
   // ── Admin pages ───────────────────────────────────────────
@@ -86,7 +94,7 @@ export const createClient = async (request: NextRequest) => {
       return safeRedirect("/");
     }
 
-    return response;
+    return supabaseResponse;
   }
 
   // ── Home redirect admin ───────────────────────────────────
@@ -103,5 +111,5 @@ export const createClient = async (request: NextRequest) => {
     }
   }
 
-  return response;
+  return supabaseResponse;
 };
