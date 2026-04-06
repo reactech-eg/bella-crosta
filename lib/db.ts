@@ -4,12 +4,10 @@ import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/admin-client";
 import type {
   Customer,
-  Order,
   Product,
   RawMaterial,
   ProductIngredient,
 } from "./types";
-import { mapOrder } from "@/app/actions/orders";
 
 async function getDB() {
   return await createClient();
@@ -63,36 +61,6 @@ export async function getProductIngredients(
     return [];
   }
   return data ?? [];
-}
-
-// ─── Orders ───────────────────────────────────────────────────────────────────
-
-export async function getOrderById(orderId: string): Promise<Order | null> {
-  const db = await getDB();
-  const { data, error } = await db
-    .from("orders")
-    .select(`*, order_items(*), customers(*), payments(*)`)
-    .eq("id", orderId)
-    .single();
-  if (error) {
-    console.error("getOrderById:", error.message);
-    return null;
-  }
-  return mapOrder(data);
-}
-
-export async function getAllOrders(): Promise<Order[]> {
-  const db = getAdminDB();
-  const { data, error } = await db
-    .from("orders")
-    .select(`*, order_items(*), customers(*), payments(*)`)
-    .order("created_at", { ascending: false });
-  if (error) {
-    console.error("getAllOrders:", error.message);
-    return [];
-  }
-  const orders = Promise.all((data ?? []).map(mapOrder));
-  return orders;
 }
 
 // ─── Customers ────────────────────────────────────────────────────────────────

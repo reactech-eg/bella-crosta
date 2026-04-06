@@ -43,3 +43,34 @@ export const getCustomerOrders = cache(
     return orders;
   },
 );
+
+export const getOrderById = cache(
+  async (orderId: string): Promise<Order | null> => {
+    const supabase = await createClient();
+    const { data, error, status } = await supabase
+      .from("orders")
+      .select(`*, order_items(*), customers(*), payments(*)`)
+      .eq("id", orderId)
+      .single();
+    if (error) {
+      handleSupabaseError("getOrderById:", error, status);
+      return null;
+    }
+    return mapOrder(data);
+  },
+);
+
+export const getAllOrders = cache(async (): Promise<Order[]> => {
+  const supabase = await createClient();
+  const { data, error, status } = await supabase
+    .from("orders")
+    .select(`*, order_items(*), customers(*), payments(*)`)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    handleSupabaseError("getAllOrders:", error, status);
+    return [];
+  }
+  const orders = Promise.all((data ?? []).map(mapOrder));
+  return orders;
+});

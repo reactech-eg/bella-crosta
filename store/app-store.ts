@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { Product, Order } from "@/lib/types";
-import { getOrderById } from "@/lib/db";
 import { getProducts } from "@/app/actions/products";
+import { getOrderById } from "@/app/actions/orders";
 
 interface AppStore {
   products: Product[];

@@ -1,12 +1,6 @@
-import { getAllOrders, getProductStats } from "@/lib/db";
+import { getProductStats } from "@/lib/db";
 import AdminDashboardClient from "./client";
-import { Suspense } from "react";
-import {
-  DashboardKpiSkeleton,
-  DashboardTableSkeleton,
-  ChartSkeleton,
-  ProductStatsCardSkeleton,
-} from "@/components/admin-dashboard-skeleton";
+import { getAllOrders } from "@/app/actions/orders";
 
 export const dynamic = "force-dynamic";
 

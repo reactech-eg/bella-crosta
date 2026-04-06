@@ -3,12 +3,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import type { Customer, Product, Order, RawMaterial } from "@/lib/types";
-import {
-  getAllCustomers,
-  getAllOrders,
-  getOrderById,
-  getAllRawMaterials,
-} from "@/lib/db";
+import { getAllCustomers, getAllRawMaterials } from "@/lib/db";
 import {
   createRawMaterial,
   updateRawMaterial,
@@ -20,6 +15,7 @@ import {
 } from "@/lib/actions";
 import type { ProductFormData } from "@/lib/types";
 import { getAllProducts } from "@/app/actions/products";
+import { getAllOrders, getOrderById } from "@/app/actions/orders";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
