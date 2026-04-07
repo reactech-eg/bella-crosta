@@ -43,7 +43,7 @@ export default function ProductCard({
 
   const handleAdd = () => {
     if (remainingStock === 0) return;
-    
+
     const finalQuantity = Math.min(quantity, remainingStock);
 
     setIsAnimate(true);
@@ -78,7 +78,8 @@ export default function ProductCard({
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center bg-secondary/30">
-            <span className="text-5xl mb-2">🍕</span>
+            <Image src={"/icon.svg"} alt="icon" width={40} height={40} />
+
             <span className="text-xs font-medium text-muted-foreground">
               No image available
             </span>
@@ -140,12 +141,18 @@ export default function ProductCard({
                   <Minus className="w-3.5 h-3.5" />
                 </Button>
                 <span className="w-8 text-center text-sm font-bold">
-                  {remainingStock === 0 ? 0 : quantity > remainingStock ? remainingStock : quantity}
+                  {remainingStock === 0
+                    ? 0
+                    : quantity > remainingStock
+                      ? remainingStock
+                      : quantity}
                 </span>
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setQuantity((q) => Math.min(remainingStock, q + 1))}
+                  onClick={() =>
+                    setQuantity((q) => Math.min(remainingStock, q + 1))
+                  }
                   className="h-7 w-7"
                   disabled={remainingStock === 0 || quantity >= remainingStock}
                   aria-label="Increase quantity"
@@ -157,7 +164,9 @@ export default function ProductCard({
               {/* Add Button */}
               <Button
                 onClick={handleAdd}
-                disabled={isAnimate || remainingStock === 0 || quantity > remainingStock}
+                disabled={
+                  isAnimate || remainingStock === 0 || quantity > remainingStock
+                }
                 className={cn(
                   "flex-1 h-11 text-sm font-bold transition-all duration-300 ",
                   added ? "bg-green-500 text-white" : "",

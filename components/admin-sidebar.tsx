@@ -16,6 +16,7 @@ import {
   ChefHat,
   Loader2,
 } from "lucide-react";
+import Logo from "./logo";
 
 interface AdminSidebarProps {
   mobile?: boolean;
@@ -55,14 +56,7 @@ export function AdminSidebar({ mobile = false, onClose }: AdminSidebarProps) {
     <div className="flex flex-col h-full bg-sidebar border-r border-sidebar-border">
       {/* Logo */}
       <div className="flex items-center justify-between px-4 py-4 border-b border-sidebar-border">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-sm">
-            🍕
-          </div>
-          <span className="font-bold text-sidebar-foreground text-sm">
-            Bella Crosta
-          </span>
-        </Link>
+        <Logo />
         {mobile && (
           <button
             onClick={onClose}
