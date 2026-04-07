@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import Logo from "./logo";
 
 export function Header() {
   const pathname = usePathname();
@@ -70,16 +71,7 @@ export function Header() {
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         {/* Logo Section */}
-        <Link href="/" className="group flex items-center gap-3 outline-none">
-          <span className="text-2xl">🍕</span>
-          <div className="hidden sm:block">
-            <p className="text-sm font-bold uppercase tracking-[0.2rem] text-primary leading-none mb-1">
-              Bella
-              <br />
-              <span className="ms-3">Crosta</span>
-            </p>
-          </div>
-        </Link>
+        <Logo />
 
         {/* Desktop Navigation */}
         <nav className="hidden lg:flex items-center gap-1">

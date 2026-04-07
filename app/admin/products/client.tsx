@@ -813,18 +813,13 @@ export default function AdminProductsClient() {
                     <>
                       {/* Product card */}
                       <div className="relative h-40 bg-muted overflow-hidden">
-                        {p.image_url ? (
-                          <Image
-                            src={p.image_url}
-                            alt={p.name}
-                            fill
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-4xl">
-                            🍕
-                          </div>
-                        )}
+                        <Image
+                          src={p.image_url || "/icon.svg"}
+                          alt={p.name}
+                          fill
+                          className="object-cover"
+                        />
+
                         <span className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-sm rounded-full text-xs text-white capitalize">
                           {p.category}
                         </span>

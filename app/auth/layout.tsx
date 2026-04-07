@@ -1,4 +1,5 @@
 import { Footer } from "@/components/footer";
+import Logo from "@/components/logo";
 import Link from "next/link";
 
 export default function AuthLayout({
@@ -9,17 +10,7 @@ export default function AuthLayout({
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="px-6 py-5 flex items-center justify-between border-b border-border">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-base shadow-lg shadow-primary/20">
-            🍕
-          </div>
-          <span
-            className="text-lg font-bold text-foreground"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            Bella Crosta
-          </span>
-        </Link>
+        <Logo />
 
         <Link
           href="/"

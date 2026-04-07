@@ -91,7 +91,12 @@ export default function CartPage() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center flex-col text-3xl">
-                        🍕
+                        <Image
+                          src={"/icon.svg"}
+                          alt="icon"
+                          width={40}
+                          height={40}
+                        />
                         <span className="text-xs text-muted-foreground">
                           No image available
                         </span>

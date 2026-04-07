@@ -23,6 +23,9 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className={`dark ${BricolageGrotesqueFont.className}`}>
+      <head>
+        <meta name="apple-mobile-web-app-title" content="Bella Crosta" />
+      </head>
       <body className="min-h-screen bg-background text-foreground antialiased font-sans">
         <AuthProvider initialUser={user}>{children}</AuthProvider>
       </body>
