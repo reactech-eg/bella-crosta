@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useTransition } from "react";
+import { useOrdersRealtime } from "@/hooks/use-order-realtime";
 import Link from "next/link";
 import { Header } from "@/components/header";
 import { Order } from "@/lib/types";
+import { cancelOrder } from "@/app/actions/orders";
 import {
   PackageOpen,
   CheckCircle,
@@ -13,6 +15,7 @@ import {
   ArrowLeft,
   XCircle,
   ChevronDown,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -59,12 +62,23 @@ const STATUS_CONFIG = {
   },
 };
 
-export default function OrdersClient({ orders }: OrdersClientProps) {
+export default function OrdersClient({
+  orders: initialOrders,
+}: OrdersClientProps) {
+  const [orders, setOrders] = useState(initialOrders);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "status">(
     "newest",
   );
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [isPending, startTransition] = useTransition();
+  const [cancelError, setCancelError] = useState<string | null>(null);
+
+  const customerId = initialOrders[0]?.customer_id ?? null;
+  const handleOrdersUpdate = useCallback((updatedOrders: Order[]) => {
+    setOrders(updatedOrders);
+  }, []);
+  useOrdersRealtime(customerId, handleOrdersUpdate);
 
   const sorted = useMemo(() => {
     let result = [...orders];
@@ -109,6 +123,16 @@ export default function OrdersClient({ orders }: OrdersClientProps) {
     "delivered",
     "cancelled",
   ] as const;
+
+  const handleCancelOrder = (orderId: string) => {
+    setCancelError(null);
+    startTransition(async () => {
+      const result = await cancelOrder(orderId);
+      if (!result.success) {
+        setCancelError(result.error || "Failed to cancel order");
+      }
+    });
+  };
 
   if (orders.length === 0) {
     return (
@@ -232,6 +256,7 @@ export default function OrdersClient({ orders }: OrdersClientProps) {
                 hour12: true,
               });
               const itemCount = order.order_items?.length ?? 0;
+              const canCancel = ["pending", "confirmed"].includes(order.status);
 
               return (
                 <div
@@ -319,6 +344,12 @@ export default function OrdersClient({ orders }: OrdersClientProps) {
                   {/* Expanded Details */}
                   {isExpanded && (
                     <div className="border-t border-border/50 px-6 pb-6 pt-4 space-y-4">
+                      {cancelError && (
+                        <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm text-destructive">
+                          {cancelError}
+                        </div>
+                      )}
+
                       {/* Order Items */}
                       <div>
                         <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
@@ -376,14 +407,31 @@ export default function OrdersClient({ orders }: OrdersClientProps) {
                         </div>
                       </div>
 
-                      {/* Action Button */}
-                      <Link
-                        href={`/order/${order.id}`}
-                        className="w-full inline-flex items-center justify-center gap-2 mt-4 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 text-sm"
-                      >
-                        View Full Details
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
+                      {/* Actions */}
+                      <div className="flex gap-3 pt-4">
+                        <Link
+                          href={`/order/${order.id}`}
+                          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 text-sm"
+                        >
+                          View Full Details
+                          <ArrowRight className="w-4 h-4" />
+                        </Link>
+
+                        {canCancel && (
+                          <button
+                            onClick={() => handleCancelOrder(order.id)}
+                            disabled={isPending}
+                            className="px-4 py-3 bg-destructive/10 text-destructive rounded-xl font-bold hover:bg-destructive/20 transition-all active:scale-95 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                          >
+                            {isPending ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <XCircle className="w-4 h-4" />
+                            )}
+                            Cancel
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

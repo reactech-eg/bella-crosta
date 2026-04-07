@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { Header } from "@/components/header";
 import {
@@ -9,11 +12,12 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Order } from "@/lib/types";
+import { useOrderRealtime } from "@/hooks/use-order-realtime";
 
 // Visual timeline of order progress
 const ORDER_STEPS = [
   { key: "pending", label: "Order Placed", icon: CheckCircle },
-  { key: "confirmed", label: "Payment Confirmed", icon: CheckCircle },
+  { key: "confirmed", label: "Order Confirmed", icon: CheckCircle },
   { key: "preparing", label: "Being Prepared", icon: Package },
   { key: "delivered", label: "Delivered", icon: Truck },
 ] as const;
@@ -22,7 +26,14 @@ function getStepIndex(status: string): number {
   return ORDER_STEPS.findIndex((s) => s.key === status);
 }
 
-export default function OrderPage({ order }: { order: Order }) {
+export default function OrderPage({ order: initialOrder }: { order: Order }) {
+  const [order, setOrder] = useState(initialOrder);
+
+  const handleOrderUpdate = useCallback((updatedOrder: Order) => {
+    setOrder(updatedOrder);
+  }, []);
+
+  useOrderRealtime(order.id, handleOrderUpdate);
   const isCancelled = order.status === "cancelled";
   const currentStep = isCancelled ? -1 : getStepIndex(order.status);
 
