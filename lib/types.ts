@@ -98,7 +98,6 @@ export interface Order {
   created_at: string;
   order_items?: OrderItem[];
   customers?: Customer;
-  payments?: Payment[];
 }
 
 export interface CartItem {

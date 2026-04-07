@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useAdminOrdersRealtime } from "@/hooks/use-order-realtime";
 import { AdminSidebar } from "@/components/admin-sidebar";
-import { Menu } from "lucide-react";
+import AdminAddOrderModal from "@/components/admin-add-order-modal";
+import { Menu, Plus } from "lucide-react";
 import Link from "next/link";
-import { Order } from "@/lib/types";
+import { Order, Product } from "@/lib/types";
+import { useRouter } from "next/navigation";
 
 const FILTERS = [
   { v: "all", l: "All Orders" },
@@ -15,9 +18,27 @@ const FILTERS = [
   { v: "cancelled", l: "Cancelled" },
 ];
 
-export default function AdminOrdersPage({ orders }: { orders: Order[] }) {
+import { Customer } from "@/lib/types";
+
+export default function AdminOrdersPage({
+  orders: initialOrders,
+  products,
+  customers,
+}: {
+  orders: Order[];
+  products: Product[];
+  customers: Customer[];
+}) {
+  const router = useRouter();
+  const [orders, setOrders] = useState(initialOrders);
   const [mobile, setMobile] = useState(false);
   const [filter, setFilter] = useState("all");
+  const [showAddOrderModal, setShowAddOrderModal] = useState(false);
+
+  const handleOrdersUpdate = useCallback((updatedOrders: Order[]) => {
+    setOrders(updatedOrders);
+  }, []);
+  useAdminOrdersRealtime(true, handleOrdersUpdate);
 
   const shown =
     filter === "all" ? orders : orders.filter((o) => o.status === filter);
@@ -38,17 +59,30 @@ export default function AdminOrdersPage({ orders }: { orders: Order[] }) {
       pending: "bg-muted text-muted-foreground",
     })[s] ?? "bg-muted text-muted-foreground";
 
+  const handleOrderCreated = () => {
+    router.refresh();
+  };
+
   return (
     <>
       {mobile && <AdminSidebar mobile onClose={() => setMobile(false)} />}
       <div className="bg-card border-b border-border px-4 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-10">
         <h1 className="text-xl font-bold text-foreground">Orders</h1>
-        <button
-          onClick={() => setMobile(true)}
-          className="md:hidden p-2 hover:bg-muted rounded-lg"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowAddOrderModal(true)}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 transition flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Add Order</span>
+          </button>
+          <button
+            onClick={() => setMobile(true)}
+            className="md:hidden p-2 hover:bg-muted rounded-lg"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       <div className="p-4 sm:p-6">
@@ -150,6 +184,15 @@ export default function AdminOrdersPage({ orders }: { orders: Order[] }) {
           )}
         </div>
       </div>
+
+      {/* Add Order Modal */}
+      <AdminAddOrderModal
+        open={showAddOrderModal}
+        onClose={() => setShowAddOrderModal(false)}
+        onSuccess={handleOrderCreated}
+        products={products}
+        customers={customers}
+      />
     </>
   );
 }
